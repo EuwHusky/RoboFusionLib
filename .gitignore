@@ -1,0 +1,9 @@
+# 可执行文件
+MDK-ARM/.vscode
+MDK-ARM/DebugConfig
+MDK-ARM/wpie_rm_gpl
+
+# vscode 配置文件
+*.vscode
+
+# 其他

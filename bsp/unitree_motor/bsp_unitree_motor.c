@@ -31,17 +31,17 @@ int modify_data(unitree_motor_s *unitree_motor)
     SATURATE(unitree_motor->set_torque, -127.99f, 127.99f);
     SATURATE(unitree_motor->set_speed, -804.00f, 804.00f);
     SATURATE(unitree_motor->set_angle, -411774.0f, 411774.0f);
-    SATURATE(unitree_motor->k_s, 0.0f, 25.599f);
     SATURATE(unitree_motor->k_a, 0.0f, 25.599f);
+    SATURATE(unitree_motor->k_s, 0.0f, 25.599f);
 
     unitree_motor->command.mode.id = unitree_motor->targer_id;
     unitree_motor->command.mode.status = unitree_motor->set_mode;
 
-    unitree_motor->command.comd.tor_des = unitree_motor->set_torque;
-    unitree_motor->command.comd.spd_des = unitree_motor->set_speed;
-    unitree_motor->command.comd.pos_des = unitree_motor->set_angle;
-    unitree_motor->command.comd.k_spd = unitree_motor->k_s;
-    unitree_motor->command.comd.k_pos = unitree_motor->k_a;
+    unitree_motor->command.comd.tor_des = unitree_motor->set_torque * 256;
+    unitree_motor->command.comd.spd_des = unitree_motor->set_speed / RAD_2_PI * 256;
+    unitree_motor->command.comd.pos_des = unitree_motor->set_angle / RAD_2_PI * 32768;
+    unitree_motor->command.comd.k_pos = unitree_motor->k_a / 25.6f * 32768;
+    unitree_motor->command.comd.k_spd = unitree_motor->k_s / 25.6f * 32768;
 
     unitree_motor->command.CRC16 = crc_ccitt(0, (uint8_t *)&unitree_motor->command, 15);
 
@@ -80,13 +80,7 @@ void unitree_motor_control(unitree_motor_s *unitree_motor)
 {
     modify_data(unitree_motor);
 
-    SET_485_DE_UP();
-    SET_485_RE_UP();
-
-    HAL_UART_Transmit(&huart6, (uint8_t *)unitree_motor, sizeof(unitree_motor->command), 20);
-
-    SET_485_RE_DOWN();
-    SET_485_DE_DOWN();
+    usart6_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
 
     osDelay(1);
 }

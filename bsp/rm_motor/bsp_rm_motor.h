@@ -3,7 +3,6 @@
 
 #include "dev_motor_config.h"
 
-/* 使用RM官方电机 */
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
 
 #include "stdint.h"

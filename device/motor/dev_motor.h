@@ -1,12 +1,10 @@
 #ifndef _DEV_MOTOR__
 #define _DEV_MOTOR__
 
-#include "stdint.h"
-
 #include "dev_motor_config.h"
+#include "dev_motor_controller.h"
 
 #include "algo_angle.h"
-#include "algo_pid.h"
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
 #include "bsp_rm_motor.h"
@@ -17,46 +15,6 @@
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
 /**
- * @brief 电机类型
- */
-typedef enum RflMotorType
-{
-
-/* 使用RM官方电机 */
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    RFL_MOTOR_RM_M2006 = 0,
-    RFL_MOTOR_RM_M3508,
-    RFL_MOTOR_RM_GM6020,
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
-
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
-    RFL_MOTOR_UNITREE_GO_M8010_6,
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
-
-    RFL_MOTOR_TYPE_NUM
-} rfl_motor_type_e;
-
-/**
- * @brief 电机控制模式
- */
-typedef enum RflMotorControlMode
-{
-    RFL_MOTOR_CONTROL_MODE_NO_FORCE = 0, // 无力
-    RFL_MOTOR_CONTROL_MODE_SPEED,        // 速度
-    RFL_MOTOR_CONTROL_MODE_ANGLE,        // 角度
-    RFL_MOTOR_CONTROL_MODE_DIRECTION     // 方位
-} rfl_motor_control_mode_e;
-
-/**
- * @brief 角度计算模式
- */
-typedef enum RflMotorAngleFormat
-{
-    RFL_MOTOR_ANGLE_FORMAT_CIRCLED = 0, // 多圈角度 -10000° ~ 10000°
-    RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE     // 绝对角度 -180° ~ 180°
-} rfl_motor_angle_format_e;
-
-/**
  * @brief 电机
  */
 typedef struct RflMotor
@@ -64,11 +22,12 @@ typedef struct RflMotor
     /* 基础参数 */
 
     rfl_motor_type_e type;
+    rfl_motor_controller_type_e controller_type;
     rfl_motor_control_mode_e mode_;
 
     rfl_motor_angle_format_e angle_format; // 角度格式
 
-    float effector_transmission_ratio_; // 末端执行器转一圈时电机转子转过的圈数
+    float effector_transmission_ratio_; // 电机末端执行器转一圈时电机转子转过的圈数
 
     /* 控制量 */
 
@@ -82,7 +41,9 @@ typedef struct RflMotor
     pid_type_def speed_pid; // 速度控制PID控制器
     pid_type_def angle_pid; // 角度控制PID控制器
 
-    float control_output; // 控制输出 无绝对物理意义
+    void *controller; // 电机控制器
+
+    float control_output; // 输出控制量 物理意义视用法而定
 
     /* 状态量 */
 
@@ -94,7 +55,7 @@ typedef struct RflMotor
     const rfl_angle_s *external_angle; // 外部角度
 
     /* 电机驱动 */
-    void *motor_driver;
+    void *driver;
 
     /* 错误码 */
     uint8_t error_code;
@@ -102,47 +63,10 @@ typedef struct RflMotor
 } rfl_motor_s;
 
 /**
- * @brief 电机配置
- */
-typedef struct RflMotorConfig
-{
-    rfl_motor_type_e type;
-    rfl_motor_control_mode_e mode;
-    rfl_motor_angle_format_e angle_format;
-    float effector_transmission_ratio;
-
-    float max_accle;
-
-    rfl_angle_s max_angle;
-    rfl_angle_s min_angle;
-
-    float angle_pid_kp;
-    float angle_pid_ki;
-    float angle_pid_kd;
-    float angle_pid_max_iout;
-    float angle_pid_max_out;
-
-    float speed_pid_kp;
-    float speed_pid_ki;
-    float speed_pid_kd;
-    float speed_pid_max_iout;
-    float speed_pid_max_out;
-
-    const float *external_speed;
-    const rfl_angle_s *external_angle;
-
-/* 使用RM官方电机 */
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    uint8_t can_handle_id;
-    uint32_t can_id;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
-
-} rfl_motor_config_s;
-
-/**
  * @brief 获取电机默认配置
  */
-extern void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e type);
+extern void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e type,
+                                     rfl_motor_controller_type_e controller);
 /**
  * @brief 初始化电机
  */

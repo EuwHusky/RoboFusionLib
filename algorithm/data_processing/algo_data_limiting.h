@@ -4,6 +4,11 @@
 #include "stdint.h"
 
 /**
+ * @brief 绝对限制
+ */
+extern void rflAbsLimit(float *num, float limit);
+
+/**
  * @brief 单精度浮点型循环限幅函数
  */
 extern float rflFloatLoopConstrain(float input, float min_value, float max_value);

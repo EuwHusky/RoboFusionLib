@@ -96,4 +96,27 @@ extern float Quadratic_PID_calc(Quadratic_pid_type_def *pid, float ref, float se
 
 extern void Quadratic_PID_clear(Quadratic_pid_type_def *pid);
 
+typedef struct
+{
+    float kp;
+    float ki;
+    float kd;
+
+    float set;
+    float get;
+    float err;
+
+    float max_out;
+    float max_iout;
+
+    float out;
+    float Pout;
+    float Iout;
+    float Dout;
+} ExternalD_pid_type_def;
+
+extern void ExternalD_PID_init(ExternalD_pid_type_def *pid, const float PID[3], float max_out, float max_iout);
+extern float ExternalD_PID_calc(ExternalD_pid_type_def *pid, float get, float set, float error_delta);
+extern void ExternalD_PID_clear(ExternalD_pid_type_def *gimbal_pid_clear);
+
 #endif /* _ALGO_PID_H__ */

@@ -1,10 +1,6 @@
 #include "algo_matrix.h"
 
-void arm_mat_init_f32(
-    arm_matrix_instance_f32 *S,
-    uint16_t nRows,
-    uint16_t nColumns,
-    float32_t *pData)
+void arm_mat_init_f32(arm_matrix_instance_f32 *S, uint16_t nRows, uint16_t nColumns, float32_t *pData)
 {
     /* 分配行数 */
     S->numRows = nRows;
@@ -14,10 +10,8 @@ void arm_mat_init_f32(
     S->pData = pData;
 }
 
-arm_status arm_mat_add_f32(
-    const arm_matrix_instance_f32 *pSrcA,
-    const arm_matrix_instance_f32 *pSrcB,
-    arm_matrix_instance_f32 *pDst)
+arm_status arm_mat_add_f32(const arm_matrix_instance_f32 *pSrcA, const arm_matrix_instance_f32 *pSrcB,
+                           arm_matrix_instance_f32 *pDst)
 {
     float32_t *pIn1 = pSrcA->pData; /* input data matrix pointer A  */
     float32_t *pIn2 = pSrcB->pData; /* input data matrix pointer B  */
@@ -35,9 +29,8 @@ arm_status arm_mat_add_f32(
 
 #ifdef ARM_MATH_MATRIX_CHECK
     /* Check for matrix mismatch condition */
-    if ((pSrcA->numRows != pSrcB->numRows) ||
-        (pSrcA->numCols != pSrcB->numCols) ||
-        (pSrcA->numRows != pDst->numRows) || (pSrcA->numCols != pDst->numCols))
+    if ((pSrcA->numRows != pSrcB->numRows) || (pSrcA->numCols != pSrcB->numCols) || (pSrcA->numRows != pDst->numRows) ||
+        (pSrcA->numCols != pDst->numCols))
     {
         /* Set status as ARM_MATH_SIZE_MISMATCH */
         status = ARM_MATH_SIZE_MISMATCH;
@@ -145,10 +138,8 @@ arm_status arm_mat_add_f32(
     return (status);
 }
 
-arm_status arm_mat_sub_f32(
-    const arm_matrix_instance_f32 *pSrcA,
-    const arm_matrix_instance_f32 *pSrcB,
-    arm_matrix_instance_f32 *pDst)
+arm_status arm_mat_sub_f32(const arm_matrix_instance_f32 *pSrcA, const arm_matrix_instance_f32 *pSrcB,
+                           arm_matrix_instance_f32 *pDst)
 {
     float32_t *pIn1 = pSrcA->pData; /* input data matrix pointer A */
     float32_t *pIn2 = pSrcB->pData; /* input data matrix pointer B */
@@ -166,9 +157,8 @@ arm_status arm_mat_sub_f32(
 
 #ifdef ARM_MATH_MATRIX_CHECK
     /* Check for matrix mismatch condition */
-    if ((pSrcA->numRows != pSrcB->numRows) ||
-        (pSrcA->numCols != pSrcB->numCols) ||
-        (pSrcA->numRows != pDst->numRows) || (pSrcA->numCols != pDst->numCols))
+    if ((pSrcA->numRows != pSrcB->numRows) || (pSrcA->numCols != pSrcB->numCols) || (pSrcA->numRows != pDst->numRows) ||
+        (pSrcA->numCols != pDst->numCols))
     {
         /* Set status as ARM_MATH_SIZE_MISMATCH */
         status = ARM_MATH_SIZE_MISMATCH;
@@ -278,10 +268,8 @@ arm_status arm_mat_sub_f32(
     return (status);
 }
 
-arm_status arm_mat_mult_f32(
-    const arm_matrix_instance_f32 *pSrcA,
-    const arm_matrix_instance_f32 *pSrcB,
-    arm_matrix_instance_f32 *pDst)
+arm_status arm_mat_mult_f32(const arm_matrix_instance_f32 *pSrcA, const arm_matrix_instance_f32 *pSrcB,
+                            arm_matrix_instance_f32 *pDst)
 {
     float32_t *pIn1 = pSrcA->pData;     /* input data matrix pointer A */
     float32_t *pIn2 = pSrcB->pData;     /* input data matrix pointer B */
@@ -304,8 +292,7 @@ arm_status arm_mat_mult_f32(
 #ifdef ARM_MATH_MATRIX_CHECK
 
     /* Check for matrix mismatch condition */
-    if ((pSrcA->numCols != pSrcB->numRows) ||
-        (pSrcA->numRows != pDst->numRows) || (pSrcB->numCols != pDst->numCols))
+    if ((pSrcA->numCols != pSrcB->numRows) || (pSrcA->numRows != pDst->numRows) || (pSrcB->numCols != pDst->numCols))
     {
 
         /* Set status as ARM_MATH_SIZE_MISMATCH */
@@ -407,8 +394,7 @@ arm_status arm_mat_mult_f32(
 #ifdef ARM_MATH_MATRIX_CHECK
 
     /* Check for matrix mismatch condition */
-    if ((pSrcA->numCols != pSrcB->numRows) ||
-        (pSrcA->numRows != pDst->numRows) || (pSrcB->numCols != pDst->numCols))
+    if ((pSrcA->numCols != pSrcB->numRows) || (pSrcA->numRows != pDst->numRows) || (pSrcB->numCols != pDst->numCols))
     {
 
         /* Set status as ARM_MATH_SIZE_MISMATCH */
@@ -483,9 +469,7 @@ arm_status arm_mat_mult_f32(
     return (status);
 }
 
-arm_status arm_mat_trans_f32(
-    const arm_matrix_instance_f32 *pSrc,
-    arm_matrix_instance_f32 *pDst)
+arm_status arm_mat_trans_f32(const arm_matrix_instance_f32 *pSrc, arm_matrix_instance_f32 *pDst)
 {
     float32_t *pIn = pSrc->pData;      /* input data matrix pointer */
     float32_t *pOut = pDst->pData;     /* output data matrix pointer */
@@ -627,9 +611,7 @@ arm_status arm_mat_trans_f32(
     return (status);
 }
 
-arm_status arm_mat_inverse_f32(
-    const arm_matrix_instance_f32 *pSrc,
-    arm_matrix_instance_f32 *pDst)
+arm_status arm_mat_inverse_f32(const arm_matrix_instance_f32 *pSrc, arm_matrix_instance_f32 *pDst)
 {
     float32_t *pIn = pSrc->pData;                                /* input data matrix pointer */
     float32_t *pOut = pDst->pData;                               /* output data matrix pointer */

@@ -2,6 +2,10 @@
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
 
+#include "math.h"
+#include "stdio.h"
+#include "string.h"
+
 #include "cmsis_os.h"
 
 #include "drv_usart.h"
@@ -9,9 +13,8 @@
 #include "algo_angle.h"
 #include "algo_crc_16_ccitt.h"
 
-#define CRC_SIZE 2
-#define CTRL_DAT_SIZE (sizeof(unitree_motor_control_frame_s) - CRC_SIZE)
-#define DATA_DAT_SIZE (sizeof(unitree_motor_feedback_frame_s) - CRC_SIZE)
+static void modify_data(unitree_motor_s *unitree_motor);
+static uint8_t extract_data(unitree_motor_s *unitree_motor);
 
 #define SATURATE(_IN, _MIN, _MAX)                                                                                      \
     {                                                                                                                  \
@@ -21,36 +24,78 @@
             _IN = _MAX;                                                                                                \
     }
 
-int modify_data(unitree_motor_s *unitree_motor)
+static void unitree_motor_control_delay(uint16_t ms)
+{
+    osDelay(ms);
+}
+
+void unitree_motor_init(unitree_motor_s *unitree_motor)
+{
+    // 发送一次停止命令以获取反馈数据
+    unitree_motor->set_mode = 0;
+    unitree_motor->set_torque = 0.0f;
+    unitree_motor->set_speed = 0.0f;
+    unitree_motor->set_angle = 0.0f;
+    unitree_motor->k_a = 0.0f;
+    unitree_motor->k_s = 0.0f;
+    unitree_motor_control(unitree_motor);
+
+    // 记录上电时的电机角度
+    extract_data(unitree_motor);
+    unitree_motor->angle_offset = unitree_motor->angle;
+
+    // unitree_motor->set_mode = 1;
+    // unitree_motor->set_torque = 0.0f;
+    // unitree_motor->set_speed = 0.0f;
+    // unitree_motor->set_angle = unitree_motor->angle_offset;
+    // unitree_motor->k_a = 0.08f;
+    // unitree_motor->k_s = 0.02f;
+    // unitree_motor_control(unitree_motor);
+    // extract_data(unitree_motor);
+}
+
+void unitree_motor_update_status(unitree_motor_s *unitree_motor)
+{
+    extract_data(unitree_motor);
+}
+
+void unitree_motor_control(unitree_motor_s *unitree_motor)
+{
+    modify_data(unitree_motor);
+
+    usart6_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
+
+    unitree_motor_control_delay(1);
+}
+
+void modify_data(unitree_motor_s *unitree_motor)
 {
     unitree_motor->command.head[0] = 0xFE;
     unitree_motor->command.head[1] = 0xEE;
 
-    // SATURATE(unitree_motor->targer_id, 0, 15);
-    // SATURATE(unitree_motor->set_mode, 0, 7);
+    // SATURATE(unitree_motor->targer_id, 0, 14);
+    // SATURATE(unitree_motor->set_mode, 0, 2);
     SATURATE(unitree_motor->set_torque, -127.99f, 127.99f);
     SATURATE(unitree_motor->set_speed, -804.00f, 804.00f);
     SATURATE(unitree_motor->set_angle, -411774.0f, 411774.0f);
-    SATURATE(unitree_motor->k_s, 0.0f, 25.599f);
     SATURATE(unitree_motor->k_a, 0.0f, 25.599f);
+    SATURATE(unitree_motor->k_s, 0.0f, 25.599f);
 
     unitree_motor->command.mode.id = unitree_motor->targer_id;
     unitree_motor->command.mode.status = unitree_motor->set_mode;
 
-    unitree_motor->command.comd.tor_des = unitree_motor->set_torque;
-    unitree_motor->command.comd.spd_des = unitree_motor->set_speed;
-    unitree_motor->command.comd.pos_des = unitree_motor->set_angle;
-    unitree_motor->command.comd.k_spd = unitree_motor->k_s;
-    unitree_motor->command.comd.k_pos = unitree_motor->k_a;
+    unitree_motor->command.comd.tor_des = unitree_motor->set_torque * 256;
+    unitree_motor->command.comd.spd_des = unitree_motor->set_speed / RAD_2_PI * 256;
+    unitree_motor->command.comd.pos_des = unitree_motor->set_angle / RAD_2_PI * 32768;
+    unitree_motor->command.comd.k_pos = unitree_motor->k_a / 25.6f * 32768;
+    unitree_motor->command.comd.k_spd = unitree_motor->k_s / 25.6f * 32768;
 
     unitree_motor->command.CRC16 = crc_ccitt(0, (uint8_t *)&unitree_motor->command, 15);
-
-    return 0;
 }
 
-int extract_data(unitree_motor_s *unitree_motor)
+uint8_t extract_data(unitree_motor_s *unitree_motor)
 {
-    if (unitree_motor->feedback.CRC16 != crc_ccitt(0, (uint8_t *)&unitree_motor->feedback, 14))
+    if (unitree_motor->feedback->CRC16 != crc_ccitt(0, (uint8_t *)unitree_motor->feedback, 14))
     {
         // printf("[WARNING] Receive data CRC error");
         unitree_motor->is_data_correct = 0;
@@ -59,15 +104,15 @@ int extract_data(unitree_motor_s *unitree_motor)
     }
     else
     {
-        unitree_motor->id = unitree_motor->feedback.mode.id;
-        unitree_motor->mode = unitree_motor->feedback.mode.status;
+        unitree_motor->id = unitree_motor->feedback->mode.id;
+        unitree_motor->mode = unitree_motor->feedback->mode.status;
 
-        unitree_motor->torque = ((float)unitree_motor->feedback.fbk.torque) / 256;
-        unitree_motor->speed = ((float)unitree_motor->feedback.fbk.speed / 256) * RAD_2_PI;
-        unitree_motor->angle = RAD_2_PI * ((float)unitree_motor->feedback.fbk.pos) / 32768;
-        unitree_motor->temp = unitree_motor->feedback.fbk.temp;
-        unitree_motor->error_code = unitree_motor->feedback.fbk.MError;
-        unitree_motor->foot_force = unitree_motor->feedback.fbk.force;
+        unitree_motor->torque = ((float)unitree_motor->feedback->fbk.torque) / 256;
+        unitree_motor->speed = ((float)unitree_motor->feedback->fbk.speed / 256) * RAD_2_PI;
+        unitree_motor->angle = RAD_2_PI * ((float)unitree_motor->feedback->fbk.pos) / 32768;
+        unitree_motor->temp = unitree_motor->feedback->fbk.temp;
+        unitree_motor->error_code = unitree_motor->feedback->fbk.MError;
+        unitree_motor->foot_force = unitree_motor->feedback->fbk.force;
 
         unitree_motor->is_data_correct = 1;
 
@@ -76,87 +121,110 @@ int extract_data(unitree_motor_s *unitree_motor)
 }
 
 extern UART_HandleTypeDef huart6;
-void unitree_motor_control(unitree_motor_s *unitree_motor)
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern DMA_HandleTypeDef hdma_usart6_tx;
+
+#define UNITREE_MOTOR_FDB_FRAME_LENGTH (16U)
+#define UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM (32U)
+uint8_t usart6_buf[2][UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM];
+
+static uint16_t motor_id = 15;
+unitree_motor_feedback_s unitree_motor_rx_data[15] = {0};
+
+void unitree_uart_init(void)
 {
-    modify_data(unitree_motor);
-
-    SET_485_DE_UP();
-    SET_485_RE_UP();
-
-    HAL_UART_Transmit(&huart6, (uint8_t *)unitree_motor, sizeof(unitree_motor->command), 20);
-
-    SET_485_RE_DOWN();
-    SET_485_DE_DOWN();
-
-    osDelay(1);
+    usart6_init(usart6_buf[0], usart6_buf[1], UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM);
 }
 
-// int modify_data(MOTOR_send *motor_s)
-// {
-//     motor_s->motor_send_data.head[0] = 0xFE;
-//     motor_s->motor_send_data.head[1] = 0xEE;
+const unitree_motor_feedback_s *unitree_motor_get_feedback_pointer(uint16_t unitree_motor_id)
+{
+    return &unitree_motor_rx_data[unitree_motor_id];
+}
 
-//     // SATURATE(motor_s->id, 0, 15);
-//     // SATURATE(motor_s->mode, 0, 7);
-//     SATURATE(motor_s->K_P, 0.0f, 25.599f);
-//     SATURATE(motor_s->K_W, 0.0f, 25.599f);
-//     SATURATE(motor_s->T, -127.99f, 127.99f);
-//     SATURATE(motor_s->W, -804.00f, 804.00f);
-//     SATURATE(motor_s->Pos, -411774.0f, 411774.0f);
+void USART6_IRQHandler(void)
+{
+    if (huart6.Instance->SR & UART_FLAG_RXNE) // 接收到数据
+    {
+        __HAL_UART_CLEAR_PEFLAG(&huart6);
+    }
+    else if (USART6->SR & UART_FLAG_IDLE)
+    {
+        static uint16_t this_time_rx_len = 0;
 
-//     motor_s->motor_send_data.mode.id = motor_s->id;
-//     motor_s->motor_send_data.mode.status = motor_s->mode;
+        __HAL_UART_CLEAR_PEFLAG(&huart6);
 
-//     motor_s->motor_send_data.comd.k_pos = motor_s->K_P / 25.6f * 32768;
-//     motor_s->motor_send_data.comd.k_spd = motor_s->K_W / 25.6f * 32768;
-//     motor_s->motor_send_data.comd.pos_des = motor_s->Pos / 6.2832f * 32768;
-//     motor_s->motor_send_data.comd.spd_des = motor_s->W / 6.2832f * 256;
-//     motor_s->motor_send_data.comd.tor_des = motor_s->T * 256;
+        if ((hdma_usart6_rx.Instance->CR & DMA_SxCR_CT) == RESET) /* Current memory buffer used is Memory 0 */
+        {
+            // disable DMA
+            // 失效DMA
+            __HAL_DMA_DISABLE(&hdma_usart6_rx);
 
-//     motor_s->motor_send_data.CRC16 = crc_ccitt(0, (uint8_t *)&motor_s->motor_send_data, 15);
+            // get receive data length, length = set_data_length - remain_length
+            // 获取接收数据长度,长度 = 设定长度 - 剩余长度
+            this_time_rx_len = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM - hdma_usart6_rx.Instance->NDTR;
 
-//     return 0;
-// }
+            // reset set_data_lenght
+            // 重新设定数据长度
+            hdma_usart6_rx.Instance->NDTR = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM;
 
-// int extract_data(MOTOR_recv *motor_r)
-// {
-//     if (motor_r->motor_recv_data.CRC16 != crc_ccitt(0, (uint8_t *)&motor_r->motor_recv_data, 14))
-//     {
-//         // printf("[WARNING] Receive data CRC error");
-//         motor_r->is_data_correct = 0;
+            // set memory buffer 1
+            // 设定缓冲区1
+            hdma_usart6_rx.Instance->CR |= DMA_SxCR_CT;
 
-//         return motor_r->is_data_correct;
-//     }
-//     else
-//     {
-//         motor_r->id = motor_r->motor_recv_data.mode.id;
-//         motor_r->mode = motor_r->motor_recv_data.mode.status;
-//         motor_r->Temp = motor_r->motor_recv_data.fbk.temp;
-//         motor_r->MError = motor_r->motor_recv_data.fbk.MError;
-//         motor_r->W = ((float)motor_r->motor_recv_data.fbk.speed / 256) * 6.2832f;
-//         motor_r->T = ((float)motor_r->motor_recv_data.fbk.torque) / 256;
-//         motor_r->Pos = 6.2832f * ((float)motor_r->motor_recv_data.fbk.pos) / 32768;
-//         motor_r->footForce = motor_r->motor_recv_data.fbk.force;
-//         motor_r->is_data_correct = 1;
+            // enable DMA
+            // 使能DMA
+            __HAL_DMA_ENABLE(&hdma_usart6_rx);
 
-//         return motor_r->is_data_correct;
-//     }
-// }
+            if (this_time_rx_len == UNITREE_MOTOR_FDB_FRAME_LENGTH)
+            {
+                if (usart6_buf[0][0] == 0XFD && usart6_buf[0][1] == 0XEE)
+                {
+                    motor_id = usart6_buf[0][2] & 0XF;
 
-// extern UART_HandleTypeDef huart6;
-// void SERVO_Send(MOTOR_send *pData)
-// {
-//     modify_data(pData);
+                    if (motor_id < 15)
+                    {
+                        memcpy(&unitree_motor_rx_data[motor_id], usart6_buf[0], sizeof(unitree_motor_feedback_s));
+                    }
+                }
+            }
+        }
+        else /* Current memory buffer used is Memory 1 */
+        {
+            // disable DMA
+            // 失效DMA
+            __HAL_DMA_DISABLE(&hdma_usart6_rx);
 
-//     SET_485_DE_UP();
-//     SET_485_RE_UP();
+            // get receive data length, length = set_data_length - remain_length
+            // 获取接收数据长度,长度 = 设定长度 - 剩余长度
+            this_time_rx_len = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM - hdma_usart6_rx.Instance->NDTR;
 
-//     HAL_UART_Transmit(&huart6, (uint8_t *)pData, sizeof(pData->motor_send_data), 20);
+            // reset set_data_lenght
+            // 重新设定数据长度
+            hdma_usart6_rx.Instance->NDTR = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM;
 
-//     SET_485_RE_DOWN();
-//     SET_485_DE_DOWN();
+            // set memory buffer 0
+            // 设定缓冲区0
+            // hdma_usart6_rx.Instance->CR &= ~(DMA_SxCR_CT);
+            DMA2_Stream1->CR &= ~(DMA_SxCR_CT);
 
-//     osDelay(1);
-// }
+            // enable DMA
+            // 使能DMA
+            __HAL_DMA_ENABLE(&hdma_usart6_rx);
+
+            if (this_time_rx_len == UNITREE_MOTOR_FDB_FRAME_LENGTH)
+            {
+                if (usart6_buf[1][0] == 0XFD && usart6_buf[1][1] == 0XEE)
+                {
+                    motor_id = usart6_buf[1][2] & 0XF;
+
+                    if (motor_id < 15)
+                    {
+                        memcpy(&unitree_motor_rx_data[motor_id], usart6_buf[1], sizeof(unitree_motor_feedback_s));
+                    }
+                }
+            }
+        }
+    }
+}
 
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */

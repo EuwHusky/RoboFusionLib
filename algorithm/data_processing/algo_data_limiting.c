@@ -1,6 +1,21 @@
 #include "algo_data_limiting.h"
 
 /**
+ * @brief 绝对限制
+ */
+void rflAbsLimit(float *num, float limit)
+{
+    if (*num > limit)
+    {
+        *num = limit;
+    }
+    else if (*num < -limit)
+    {
+        *num = -limit;
+    }
+}
+
+/**
  * @brief 单精度浮点型循环限幅函数
  */
 float rflFloatLoopConstrain(float input, float min_value, float max_value)

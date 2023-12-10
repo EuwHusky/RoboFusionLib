@@ -1,4 +1,6 @@
 #include "algo_pid.h"
+#include "algo_angle.h"
+#include "algo_data_limiting.h"
 
 #define LimitMax(input, max)                                                                                           \
     {                                                                                                                  \
@@ -188,4 +190,50 @@ void Quadratic_PID_clear(Quadratic_pid_type_def *pid)
     pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
     pid->out = pid->Pout = pid->Iout = pid->Dout = 0.0f;
     pid->fdb = pid->set = 0.0f;
+}
+
+void ExternalD_PID_init(ExternalD_pid_type_def *pid, const float PID[3], float max_out, float max_iout)
+{
+    if (pid == NULL)
+        return;
+
+    pid->kp = PID[0];
+    pid->ki = PID[1];
+    pid->kd = PID[2];
+
+    pid->max_iout = max_iout;
+    pid->max_out = max_out;
+
+    pid->set = pid->get = pid->err = 0.0f;
+    pid->Pout = pid->Iout = pid->Dout = pid->out = 0.0f;
+}
+
+#define rad_format(Ang) rflFloatLoopConstrain((Ang), -RAD_PI, RAD_PI)
+float ExternalD_PID_calc(ExternalD_pid_type_def *pid, float get, float set, float error_delta)
+{
+    float err;
+    if (pid == NULL)
+        return 0.0f;
+
+    pid->get = get;
+    pid->set = set;
+
+    err = set - get;
+    pid->err = rad_format(err);
+    pid->Pout = pid->kp * pid->err;
+    pid->Iout += pid->ki * pid->err;
+    pid->Dout = pid->kd * error_delta;
+    LimitMax(pid->Iout, pid->max_iout);
+    pid->out = pid->Pout + pid->Iout + pid->Dout;
+    LimitMax(pid->out, pid->max_out);
+    return pid->out;
+}
+
+void ExternalD_PID_clear(ExternalD_pid_type_def *gimbal_pid_clear)
+{
+    if (gimbal_pid_clear == NULL)
+        return;
+
+    gimbal_pid_clear->err = gimbal_pid_clear->set = gimbal_pid_clear->get = 0.0f;
+    gimbal_pid_clear->out = gimbal_pid_clear->Pout = gimbal_pid_clear->Iout = gimbal_pid_clear->Dout = 0.0f;
 }

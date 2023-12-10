@@ -34,6 +34,7 @@ typedef enum RflMotorControllerType
 {
     RFL_MOTOR_CONTROLLER_NONE = 0, // 无控制器
     RFL_MOTOR_CONTROLLER_PID,      // PID控制器
+    RFL_MOTOR_CONTROLLER_UNITREE,  // Unitree直接控制器
 } rfl_motor_controller_type_e;
 
 /**
@@ -82,6 +83,9 @@ typedef struct RflMotorConfig
     float speed_pid_kd;
     float speed_pid_max_iout;
     float speed_pid_max_out;
+
+    float unitree_k_a;
+    float unitree_k_s;
 
     const float *external_speed;
     const rfl_angle_s *external_angle;
@@ -148,5 +152,13 @@ typedef struct RflMotorConfig
 #define RFL_MOTOR_RM_GM6020_DEFAULT_SPEED_PID_MAX_IOUT (20000.0f)
 #define RFL_MOTOR_RM_GM6020_DEFAULT_SPEED_PID_MAX_OUT (30000.0f)
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#define RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE (0.3f)
+#define RFL_MOTOR_UNITREE_GO_M8010_6_K_SPEED (0.02f)
+
+#define RFL_MOTOR_UNITREE_DEFAULT_K_ANGLE (0.0f)
+#define RFL_MOTOR_UNITREE_DEFAULT_K_SPEED (0.0f)
+#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
 #endif /* _DEV_MOTOR_CONFIG_H__ */

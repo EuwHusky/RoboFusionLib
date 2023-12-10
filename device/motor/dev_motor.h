@@ -38,8 +38,8 @@ typedef struct RflMotor
     rfl_angle_s max_angle_; // 最大控制角度 单位degree
     rfl_angle_s min_angle_; // 最小控制角度 单位degree
 
-    pid_type_def speed_pid; // 速度控制PID控制器
-    pid_type_def angle_pid; // 角度控制PID控制器
+    // pid_type_def speed_pid; // 速度控制PID控制器
+    // pid_type_def angle_pid; // 角度控制PID控制器
 
     void *controller; // 电机控制器
 
@@ -80,6 +80,10 @@ extern void rflMotorUpdateStatus(rfl_motor_s *motor);
  * @brief 更新电机控制量
  */
 extern float rflMotorUpdataControl(rfl_motor_s *motor);
+/**
+ * @brief 电机执行控制
+ */
+extern void rflMotorExecuteControl(rfl_motor_s *motor);
 
 /**
  * @brief 获取电机当前速度
@@ -107,13 +111,21 @@ extern void rflMotorSetSpeed(rfl_motor_s *motor, float set_speed);
  */
 extern void rflMotorSetAccle(rfl_motor_s *motor, float set_accle);
 /**
- * @brief 设置电机预期角度
+ * @brief 设置电机预期角度-角度值
  */
-extern void rflMotorSetAngle(rfl_motor_s *motor, rfl_angle_s set_angle);
+extern void rflMotorSetDegAngle(rfl_motor_s *motor, float degree_angle);
 /**
- * @brief 设置电机角度范围
+ * @brief 设置电机预期角度-弧度制
  */
-extern void rflMotorSetAngleLimit(rfl_motor_s *motor, rfl_angle_s max_angle, rfl_angle_s min_angle);
+extern void rflMotorSetRadAngle(rfl_motor_s *motor, float radian_angle);
+/**
+ * @brief 设置电机角度范围-角度值
+ */
+extern void rflMotorSetDegAngleLimit(rfl_motor_s *motor, float max_degree_angle, float min_degree_angle);
+/**
+ * @brief 设置电机角度范围-弧度制
+ */
+extern void rflMotorSetRadAngleLimit(rfl_motor_s *motor, float max_radian_angle, float min_radian_angle);
 
 /**
  * @brief 重置电机零位，将当前位置设为零位

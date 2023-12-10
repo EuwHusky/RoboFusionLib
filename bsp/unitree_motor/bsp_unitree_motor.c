@@ -2,6 +2,7 @@
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
 
+#include "math.h"
 #include "stdio.h"
 #include "string.h"
 
@@ -12,14 +13,8 @@
 #include "algo_angle.h"
 #include "algo_crc_16_ccitt.h"
 
-extern UART_HandleTypeDef huart6;
-extern DMA_HandleTypeDef hdma_usart6_rx;
-extern DMA_HandleTypeDef hdma_usart6_tx;
-#define UNITREE_MOTOR_FDB_FRAME_LENGTH (16U)
-#define UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM (32U)
-
-uint8_t usart6_buf[2][UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM];
-static uint16_t motor_id = 16;
+static void modify_data(unitree_motor_s *unitree_motor);
+static uint8_t extract_data(unitree_motor_s *unitree_motor);
 
 #define SATURATE(_IN, _MIN, _MAX)                                                                                      \
     {                                                                                                                  \
@@ -28,11 +23,6 @@ static uint16_t motor_id = 16;
         else if (_IN > _MAX)                                                                                           \
             _IN = _MAX;                                                                                                \
     }
-
-void unitree_uart_init(void)
-{
-    usart6_init(usart6_buf[0], usart6_buf[1], UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM);
-}
 
 static void unitree_motor_control_delay(uint16_t ms)
 {
@@ -47,11 +37,35 @@ void unitree_motor_init(unitree_motor_s *unitree_motor)
     unitree_motor->set_speed = 0.0f;
     unitree_motor->set_angle = 0.0f;
     unitree_motor->k_a = 0.0f;
-    unitree_motor->k_s = 0.05f;
+    unitree_motor->k_s = 0.0f;
     unitree_motor_control(unitree_motor);
 
     // 记录上电时的电机角度
+    extract_data(unitree_motor);
     unitree_motor->angle_offset = unitree_motor->angle;
+
+    // unitree_motor->set_mode = 1;
+    // unitree_motor->set_torque = 0.0f;
+    // unitree_motor->set_speed = 0.0f;
+    // unitree_motor->set_angle = unitree_motor->angle_offset;
+    // unitree_motor->k_a = 0.08f;
+    // unitree_motor->k_s = 0.02f;
+    // unitree_motor_control(unitree_motor);
+    // extract_data(unitree_motor);
+}
+
+void unitree_motor_update_status(unitree_motor_s *unitree_motor)
+{
+    extract_data(unitree_motor);
+}
+
+void unitree_motor_control(unitree_motor_s *unitree_motor)
+{
+    modify_data(unitree_motor);
+
+    usart6_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
+
+    unitree_motor_control_delay(1);
 }
 
 void modify_data(unitree_motor_s *unitree_motor)
@@ -59,8 +73,8 @@ void modify_data(unitree_motor_s *unitree_motor)
     unitree_motor->command.head[0] = 0xFE;
     unitree_motor->command.head[1] = 0xEE;
 
-    // SATURATE(unitree_motor->targer_id, 0, 15);
-    // SATURATE(unitree_motor->set_mode, 0, 7);
+    // SATURATE(unitree_motor->targer_id, 0, 14);
+    // SATURATE(unitree_motor->set_mode, 0, 2);
     SATURATE(unitree_motor->set_torque, -127.99f, 127.99f);
     SATURATE(unitree_motor->set_speed, -804.00f, 804.00f);
     SATURATE(unitree_motor->set_angle, -411774.0f, 411774.0f);
@@ -81,7 +95,7 @@ void modify_data(unitree_motor_s *unitree_motor)
 
 uint8_t extract_data(unitree_motor_s *unitree_motor)
 {
-    if (unitree_motor->feedback.CRC16 != crc_ccitt(0, (uint8_t *)&unitree_motor->feedback, 14))
+    if (unitree_motor->feedback->CRC16 != crc_ccitt(0, (uint8_t *)unitree_motor->feedback, 14))
     {
         // printf("[WARNING] Receive data CRC error");
         unitree_motor->is_data_correct = 0;
@@ -90,15 +104,15 @@ uint8_t extract_data(unitree_motor_s *unitree_motor)
     }
     else
     {
-        unitree_motor->id = unitree_motor->feedback.mode.id;
-        unitree_motor->mode = unitree_motor->feedback.mode.status;
+        unitree_motor->id = unitree_motor->feedback->mode.id;
+        unitree_motor->mode = unitree_motor->feedback->mode.status;
 
-        unitree_motor->torque = ((float)unitree_motor->feedback.fbk.torque) / 256;
-        unitree_motor->speed = ((float)unitree_motor->feedback.fbk.speed / 256) * RAD_2_PI;
-        unitree_motor->angle = RAD_2_PI * ((float)unitree_motor->feedback.fbk.pos) / 32768;
-        unitree_motor->temp = unitree_motor->feedback.fbk.temp;
-        unitree_motor->error_code = unitree_motor->feedback.fbk.MError;
-        unitree_motor->foot_force = unitree_motor->feedback.fbk.force;
+        unitree_motor->torque = ((float)unitree_motor->feedback->fbk.torque) / 256;
+        unitree_motor->speed = ((float)unitree_motor->feedback->fbk.speed / 256) * RAD_2_PI;
+        unitree_motor->angle = RAD_2_PI * ((float)unitree_motor->feedback->fbk.pos) / 32768;
+        unitree_motor->temp = unitree_motor->feedback->fbk.temp;
+        unitree_motor->error_code = unitree_motor->feedback->fbk.MError;
+        unitree_motor->foot_force = unitree_motor->feedback->fbk.force;
 
         unitree_motor->is_data_correct = 1;
 
@@ -106,16 +120,27 @@ uint8_t extract_data(unitree_motor_s *unitree_motor)
     }
 }
 
-void unitree_motor_control(unitree_motor_s *unitree_motor)
+extern UART_HandleTypeDef huart6;
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern DMA_HandleTypeDef hdma_usart6_tx;
+
+#define UNITREE_MOTOR_FDB_FRAME_LENGTH (16U)
+#define UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM (32U)
+uint8_t usart6_buf[2][UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM];
+
+static uint16_t motor_id = 15;
+unitree_motor_feedback_s unitree_motor_rx_data[15] = {0};
+
+void unitree_uart_init(void)
 {
-    modify_data(unitree_motor);
-
-    usart6_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
-
-    unitree_motor_control_delay(1);
+    usart6_init(usart6_buf[0], usart6_buf[1], UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM);
 }
 
-extern unitree_motor_s test_unitree_motor[2];
+const unitree_motor_feedback_s *unitree_motor_get_feedback_pointer(uint16_t unitree_motor_id)
+{
+    return &unitree_motor_rx_data[unitree_motor_id];
+}
+
 void USART6_IRQHandler(void)
 {
     if (huart6.Instance->SR & UART_FLAG_RXNE) // 接收到数据
@@ -155,15 +180,10 @@ void USART6_IRQHandler(void)
                 if (usart6_buf[0][0] == 0XFD && usart6_buf[0][1] == 0XEE)
                 {
                     motor_id = usart6_buf[0][2] & 0XF;
-                    if (motor_id == 0)
+
+                    if (motor_id < 15)
                     {
-                        memcpy(&test_unitree_motor[0].feedback, usart6_buf[0], sizeof(unitree_motor_feedback_s));
-                        extract_data(&test_unitree_motor[0]);
-                    }
-                    else if (motor_id == 1)
-                    {
-                        memcpy(&test_unitree_motor[1].feedback, usart6_buf[0], sizeof(unitree_motor_feedback_s));
-                        extract_data(&test_unitree_motor[1]);
+                        memcpy(&unitree_motor_rx_data[motor_id], usart6_buf[0], sizeof(unitree_motor_feedback_s));
                     }
                 }
             }
@@ -196,15 +216,10 @@ void USART6_IRQHandler(void)
                 if (usart6_buf[1][0] == 0XFD && usart6_buf[1][1] == 0XEE)
                 {
                     motor_id = usart6_buf[1][2] & 0XF;
-                    if (motor_id == 0)
+
+                    if (motor_id < 15)
                     {
-                        memcpy(&test_unitree_motor[0].feedback, usart6_buf[1], sizeof(unitree_motor_feedback_s));
-                        extract_data(&test_unitree_motor[0]);
-                    }
-                    else if (motor_id == 1)
-                    {
-                        memcpy(&test_unitree_motor[1].feedback, usart6_buf[1], sizeof(unitree_motor_feedback_s));
-                        extract_data(&test_unitree_motor[1]);
+                        memcpy(&unitree_motor_rx_data[motor_id], usart6_buf[1], sizeof(unitree_motor_feedback_s));
                     }
                 }
             }

@@ -3,32 +3,43 @@
 /**
  * @brief 绝对限制
  */
-void rflAbsLimit(float *num, float limit) {
-  if (*num > limit) {
-    *num = limit;
-  } else if (*num < -limit) {
-    *num = -limit;
-  }
+void rflAbsLimit(float *num, float limit)
+{
+    if (*num > limit)
+    {
+        *num = limit;
+    }
+    else if (*num < -limit)
+    {
+        *num = -limit;
+    }
 }
 
 /**
  * @brief 单精度浮点型循环限幅函数
  */
-float rflFloatLoopConstrain(float input, float min_value, float max_value) {
-  if (max_value < min_value) {
-    return input;
-  }
+float rflFloatLoopConstrain(float input, float min_value, float max_value)
+{
+    if (max_value < min_value)
+    {
+        return input;
+    }
 
-  if (input > max_value) {
-    float len = max_value - min_value;
-    while (input > max_value) {
-      input -= len;
+    if (input > max_value)
+    {
+        float len = max_value - min_value;
+        while (input > max_value)
+        {
+            input -= len;
+        }
     }
-  } else if (input < min_value) {
-    float len = max_value - min_value;
-    while (input < min_value) {
-      input += len;
+    else if (input < min_value)
+    {
+        float len = max_value - min_value;
+        while (input < min_value)
+        {
+            input += len;
+        }
     }
-  }
-  return input;
+    return input;
 }

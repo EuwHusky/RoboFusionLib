@@ -9,6 +9,11 @@
 extern void rflAbsLimit(float *num, float limit);
 
 /**
+ * @brief 单精度浮点型限幅函数
+ */
+extern float rflFloatConstrain(float input, float min_value, float max_value);
+
+/**
  * @brief 单精度浮点型循环限幅函数
  */
 extern float rflFloatLoopConstrain(float input, float min_value, float max_value);

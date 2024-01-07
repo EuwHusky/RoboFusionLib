@@ -217,14 +217,16 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         ((rm_motor_s *)(motor->driver))->max_rotor_turns = rm_motor_rotor_turns_range - 2;
         ((rm_motor_s *)(motor->driver))->min_rotor_turns = -(rm_motor_rotor_turns_range - 1);
 
-        if (motor_config->can_handle_id == 1)
-        {
-            ((rm_motor_s *)(motor->driver))->can_rx_data = rflCan1AddRxMessageBox(motor_config->can_id);
-        }
-        else if (motor_config->can_handle_id == 2)
-        {
-            ((rm_motor_s *)(motor->driver))->can_rx_data = rflCan2AddRxMessageBox(motor_config->can_id);
-        }
+        ((rm_motor_s *)(motor->driver))->can_rx_data =
+            rflCanGetRxMessageBoxData(motor_config->can_handle_id, motor_config->can_id);
+        // if (motor_config->can_handle_id == 1)
+        // {
+        //     ((rm_motor_s *)(motor->driver))->can_rx_data = rflCan1AddRxMessageBox(motor_config->can_id);
+        // }
+        // else if (motor_config->can_handle_id == 2)
+        // {
+        //     ((rm_motor_s *)(motor->driver))->can_rx_data = rflCan2AddRxMessageBox(motor_config->can_id);
+        // }
 
         rm_motor_init((rm_motor_s *)(motor->driver));
 

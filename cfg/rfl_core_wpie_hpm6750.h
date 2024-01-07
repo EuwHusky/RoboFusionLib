@@ -1,0 +1,9 @@
+#ifndef _RFL_CORE_WPIE_HPM6750_H__
+#define _RFL_CORE_WPIE_HPM6750_H__
+
+#define RFL_CORE_WPIE_HPM6750 1
+
+/* driver */
+#define RFL_CORE_WPIE_HPM6750_CAN_NUM 4
+
+#endif /* _RFL_CORE_WPIE_HPM6750_H__ */

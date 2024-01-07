@@ -3,7 +3,7 @@
 
 #include "rfl_config.h"
 
-#if (RFL_CONFIG_CORE == RFL_CORE_HPM67XX)
+#if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
 
 #include "stdint.h"
 

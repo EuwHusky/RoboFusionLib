@@ -43,15 +43,6 @@ void unitree_motor_init(unitree_motor_s *unitree_motor)
     // 记录上电时的电机角度
     extract_data(unitree_motor);
     unitree_motor->angle_offset = unitree_motor->angle;
-
-    // unitree_motor->set_mode = 1;
-    // unitree_motor->set_torque = 0.0f;
-    // unitree_motor->set_speed = 0.0f;
-    // unitree_motor->set_angle = unitree_motor->angle_offset;
-    // unitree_motor->k_a = 0.08f;
-    // unitree_motor->k_s = 0.02f;
-    // unitree_motor_control(unitree_motor);
-    // extract_data(unitree_motor);
 }
 
 void unitree_motor_update_status(unitree_motor_s *unitree_motor)
@@ -63,7 +54,7 @@ void unitree_motor_control(unitree_motor_s *unitree_motor)
 {
     modify_data(unitree_motor);
 
-    usart6_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
+    usart1_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
 
     unitree_motor_control_delay(1);
 }
@@ -120,20 +111,23 @@ uint8_t extract_data(unitree_motor_s *unitree_motor)
     }
 }
 
+extern UART_HandleTypeDef huart1;
+extern DMA_HandleTypeDef hdma_usart1_tx;
+extern DMA_HandleTypeDef hdma_usart1_rx;
 extern UART_HandleTypeDef huart6;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_usart6_tx;
 
 #define UNITREE_MOTOR_FDB_FRAME_LENGTH (16U)
 #define UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM (32U)
-uint8_t usart6_buf[2][UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM];
+uint8_t usart_buf[2][UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM];
 
 static uint16_t motor_id = 15;
 unitree_motor_feedback_s unitree_motor_rx_data[15] = {0};
 
 void unitree_uart_init(void)
 {
-    usart6_init(usart6_buf[0], usart6_buf[1], UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM);
+    usart1_init(usart_buf[0], usart_buf[1], UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM);
 }
 
 const unitree_motor_feedback_s *unitree_motor_get_feedback_pointer(uint16_t unitree_motor_id)
@@ -141,49 +135,49 @@ const unitree_motor_feedback_s *unitree_motor_get_feedback_pointer(uint16_t unit
     return &unitree_motor_rx_data[unitree_motor_id];
 }
 
-void USART6_IRQHandler(void)
+void USART1_IRQHandler(void)
 {
-    if (huart6.Instance->SR & UART_FLAG_RXNE) // 接收到数据
+    if (huart1.Instance->SR & UART_FLAG_RXNE) // 接收到数据
     {
-        __HAL_UART_CLEAR_PEFLAG(&huart6);
+        __HAL_UART_CLEAR_PEFLAG(&huart1);
     }
-    else if (USART6->SR & UART_FLAG_IDLE)
+    else if (USART1->SR & UART_FLAG_IDLE)
     {
         static uint16_t this_time_rx_len = 0;
 
-        __HAL_UART_CLEAR_PEFLAG(&huart6);
+        __HAL_UART_CLEAR_PEFLAG(&huart1);
 
-        if ((hdma_usart6_rx.Instance->CR & DMA_SxCR_CT) == RESET) /* Current memory buffer used is Memory 0 */
+        if ((hdma_usart1_rx.Instance->CR & DMA_SxCR_CT) == RESET) /* Current memory buffer used is Memory 0 */
         {
             // disable DMA
             // 失效DMA
-            __HAL_DMA_DISABLE(&hdma_usart6_rx);
+            __HAL_DMA_DISABLE(&hdma_usart1_rx);
 
             // get receive data length, length = set_data_length - remain_length
             // 获取接收数据长度,长度 = 设定长度 - 剩余长度
-            this_time_rx_len = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM - hdma_usart6_rx.Instance->NDTR;
+            this_time_rx_len = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM - hdma_usart1_rx.Instance->NDTR;
 
             // reset set_data_lenght
             // 重新设定数据长度
-            hdma_usart6_rx.Instance->NDTR = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM;
+            hdma_usart1_rx.Instance->NDTR = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM;
 
             // set memory buffer 1
             // 设定缓冲区1
-            hdma_usart6_rx.Instance->CR |= DMA_SxCR_CT;
+            hdma_usart1_rx.Instance->CR |= DMA_SxCR_CT;
 
             // enable DMA
             // 使能DMA
-            __HAL_DMA_ENABLE(&hdma_usart6_rx);
+            __HAL_DMA_ENABLE(&hdma_usart1_rx);
 
             if (this_time_rx_len == UNITREE_MOTOR_FDB_FRAME_LENGTH)
             {
-                if (usart6_buf[0][0] == 0XFD && usart6_buf[0][1] == 0XEE)
+                if (usart_buf[0][0] == 0XFD && usart_buf[0][1] == 0XEE)
                 {
-                    motor_id = usart6_buf[0][2] & 0XF;
+                    motor_id = usart_buf[0][2] & 0XF;
 
                     if (motor_id < 15)
                     {
-                        memcpy(&unitree_motor_rx_data[motor_id], usart6_buf[0], sizeof(unitree_motor_feedback_s));
+                        memcpy(&unitree_motor_rx_data[motor_id], usart_buf[0], sizeof(unitree_motor_feedback_s));
                     }
                 }
             }
@@ -192,34 +186,33 @@ void USART6_IRQHandler(void)
         {
             // disable DMA
             // 失效DMA
-            __HAL_DMA_DISABLE(&hdma_usart6_rx);
+            __HAL_DMA_DISABLE(&hdma_usart1_rx);
 
             // get receive data length, length = set_data_length - remain_length
             // 获取接收数据长度,长度 = 设定长度 - 剩余长度
-            this_time_rx_len = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM - hdma_usart6_rx.Instance->NDTR;
+            this_time_rx_len = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM - hdma_usart1_rx.Instance->NDTR;
 
             // reset set_data_lenght
             // 重新设定数据长度
-            hdma_usart6_rx.Instance->NDTR = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM;
+            hdma_usart1_rx.Instance->NDTR = UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM;
 
             // set memory buffer 0
             // 设定缓冲区0
-            // hdma_usart6_rx.Instance->CR &= ~(DMA_SxCR_CT);
-            DMA2_Stream1->CR &= ~(DMA_SxCR_CT);
+            DMA2_Stream5->CR &= ~(DMA_SxCR_CT);
 
             // enable DMA
             // 使能DMA
-            __HAL_DMA_ENABLE(&hdma_usart6_rx);
+            __HAL_DMA_ENABLE(&hdma_usart1_rx);
 
             if (this_time_rx_len == UNITREE_MOTOR_FDB_FRAME_LENGTH)
             {
-                if (usart6_buf[1][0] == 0XFD && usart6_buf[1][1] == 0XEE)
+                if (usart_buf[1][0] == 0XFD && usart_buf[1][1] == 0XEE)
                 {
-                    motor_id = usart6_buf[1][2] & 0XF;
+                    motor_id = usart_buf[1][2] & 0XF;
 
                     if (motor_id < 15)
                     {
-                        memcpy(&unitree_motor_rx_data[motor_id], usart6_buf[1], sizeof(unitree_motor_feedback_s));
+                        memcpy(&unitree_motor_rx_data[motor_id], usart_buf[1], sizeof(unitree_motor_feedback_s));
                     }
                 }
             }

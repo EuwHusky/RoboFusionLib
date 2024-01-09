@@ -148,24 +148,6 @@ void rflCanInit(void)
 #endif /* RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD */
 
     rflCanRxMessageBoxesInit();
-
-    rflCanRxMessageBoxAddId(1, 0x201);
-    rflCanRxMessageBoxAddId(1, 0x202);
-    rflCanRxMessageBoxAddId(1, 0x203);
-    rflCanRxMessageBoxAddId(1, 0x204);
-    rflCanRxMessageBoxAddId(1, 0x205);
-    rflCanRxMessageBoxAddId(1, 0x206);
-    rflCanRxMessageBoxAddId(1, 0x207);
-    rflCanRxMessageBoxAddId(1, 0x208);
-
-    rflCanRxMessageBoxAddId(2, 0x201);
-    rflCanRxMessageBoxAddId(2, 0x202);
-    rflCanRxMessageBoxAddId(2, 0x203);
-    rflCanRxMessageBoxAddId(2, 0x204);
-    rflCanRxMessageBoxAddId(2, 0x205);
-    rflCanRxMessageBoxAddId(2, 0x206);
-    rflCanRxMessageBoxAddId(2, 0x207);
-    rflCanRxMessageBoxAddId(2, 0x208);
 }
 
 /* 使用RM官方电机 */

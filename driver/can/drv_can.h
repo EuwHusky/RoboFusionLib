@@ -21,6 +21,7 @@ typedef struct RflCan
 } rfl_can_rx_msg_box_s;
 
 extern void rflCanInit(void);
+extern void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8]);
 extern uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id);
 
 /* 使用RM官方电机 */

@@ -38,9 +38,6 @@ typedef struct RflMotor
     rfl_angle_s max_angle_; // 最大控制角度 单位degree
     rfl_angle_s min_angle_; // 最小控制角度 单位degree
 
-    // pid_type_def speed_pid; // 速度控制PID控制器
-    // pid_type_def angle_pid; // 角度控制PID控制器
-
     void *controller; // 电机控制器
 
     float control_output; // 输出控制量 物理意义视用法而定

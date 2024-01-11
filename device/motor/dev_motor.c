@@ -1,4 +1,5 @@
 #include "math.h"
+#include "stdlib.h"
 #include "string.h"
 
 #include "dev_motor.h"

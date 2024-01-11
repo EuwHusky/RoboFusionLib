@@ -2,7 +2,6 @@
 #define _DEV_MOTOR_CONFIG_H__
 
 #include "stdint.h"
-#include "stdlib.h"
 
 #include "rfl_config.h"
 
@@ -15,7 +14,7 @@ typedef enum RflMotorType
 {
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    RFL_MOTOR_RM_M2006 = 0,
+    RFL_MOTOR_RM_M2006,
     RFL_MOTOR_RM_M3508,
     RFL_MOTOR_RM_GM6020,
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */

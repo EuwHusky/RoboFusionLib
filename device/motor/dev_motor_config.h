@@ -12,7 +12,6 @@
  */
 typedef enum RflMotorType
 {
-
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
     RFL_MOTOR_RM_M2006,
     RFL_MOTOR_RM_M3508,
@@ -90,7 +89,7 @@ typedef struct RflMotorConfig
     const rfl_angle_s *external_angle;
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    uint8_t can_handle_id;
+    uint8_t can_ordinal;
     uint32_t can_id;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 

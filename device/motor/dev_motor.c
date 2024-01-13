@@ -3,6 +3,7 @@
 #include "string.h"
 
 #include "dev_motor.h"
+#include "dev_motor_controller.h"
 
 #include "drv_can.h"
 
@@ -130,7 +131,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
     motor_config->external_angle = NULL;
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    motor_config->can_handle_id = 1;
+    motor_config->can_ordinal = 1;
     motor_config->can_id = 0x201;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
@@ -219,7 +220,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         ((rm_motor_s *)(motor->driver))->min_rotor_turns = -(rm_motor_rotor_turns_range - 1);
 
         ((rm_motor_s *)(motor->driver))->can_rx_data =
-            rflCanGetRxMessageBoxData(motor_config->can_handle_id, motor_config->can_id);
+            rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->can_id);
 
         rm_motor_init((rm_motor_s *)(motor->driver));
 

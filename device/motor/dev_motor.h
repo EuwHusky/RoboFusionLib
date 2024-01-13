@@ -2,7 +2,6 @@
 #define _DEV_MOTOR__
 
 #include "dev_motor_config.h"
-#include "dev_motor_controller.h"
 
 #include "algo_angle.h"
 
@@ -44,12 +43,12 @@ typedef struct RflMotor
 
     /* 状态量 */
 
-    float speed; // 末端执行器转速 单位rad * s^-1
+    float speed; // 末端执行器转速 逆时针为正 单位rad * s^-1
 
-    rfl_angle_s angle; // 末端执行器角度
+    rfl_angle_s angle; // 末端执行器角度 逆时针为正
 
-    const float *external_speed;       // 外部速度
-    const rfl_angle_s *external_angle; // 外部角度
+    const float *external_speed;       // 外部速度 逆时针为正 单位rad * s^-1
+    const rfl_angle_s *external_angle; // 外部角度 逆时针为正
 
     /* 电机驱动 */
     void *driver;

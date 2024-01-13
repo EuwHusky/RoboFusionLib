@@ -6,7 +6,7 @@
 
 /* 主控 ------------------------------ */
 
-#define RFL_CONFIG_CORE RFL_CORE_WPIE_HPM6750
+#define RFL_CONFIG_CORE RFL_CORE_RM_C_BORAD
 
 /* 电机模块配置 ------------------------------ */
 

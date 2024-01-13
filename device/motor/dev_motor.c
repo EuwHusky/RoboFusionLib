@@ -3,7 +3,6 @@
 #include "string.h"
 
 #include "dev_motor.h"
-#include "dev_motor_controller.h"
 
 #include "drv_can.h"
 
@@ -523,7 +522,21 @@ void rflMotorResetAngle(rfl_motor_s *motor)
         break;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
+#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+    case RFL_MOTOR_UNITREE_GO_M8010_6:
+        unitree_motor_reset_angle((unitree_motor_s *)(motor->driver));
+        break;
+#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
     default:
         break;
+    }
+
+    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    {
+        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
+        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
     }
 }

@@ -59,6 +59,11 @@ void unitree_motor_control(unitree_motor_s *unitree_motor)
     unitree_motor_control_delay(1);
 }
 
+void unitree_motor_reset_angle(unitree_motor_s *unitree_motor)
+{
+    unitree_motor->angle_offset = unitree_motor->angle;
+}
+
 void modify_data(unitree_motor_s *unitree_motor)
 {
     unitree_motor->command.head[0] = 0xFE;

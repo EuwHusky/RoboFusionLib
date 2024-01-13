@@ -31,8 +31,10 @@ typedef enum RflMotorType
 typedef enum RflMotorControllerType
 {
     RFL_MOTOR_CONTROLLER_NONE = 0, // 无控制器
-    RFL_MOTOR_CONTROLLER_PID,      // PID控制器
-    RFL_MOTOR_CONTROLLER_UNITREE,  // Unitree直接控制器
+
+    RFL_MOTOR_CONTROLLER_PID, // PID控制器
+
+    RFL_MOTOR_CONTROLLER_UNITREE, // Unitree直接控制器
 } rfl_motor_controller_type_e;
 
 /**

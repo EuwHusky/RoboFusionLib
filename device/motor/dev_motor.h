@@ -2,6 +2,7 @@
 #define _DEV_MOTOR__
 
 #include "dev_motor_config.h"
+#include "dev_motor_controller.h"
 
 #include "algo_angle.h"
 

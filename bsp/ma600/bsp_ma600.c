@@ -1,16 +1,17 @@
-#include "MA600driver.h"
+#include "bsp_ma600.h"
 
 bool MA600_init(void)
 {
     MA600_GPIO_init();
     MA600_com_init();
+
+    return true;
 }
 
 #if (NUM_OF_MA600 > 1)
 // 直接读取
 uint16_t MA600_read(uint8_t num)
 {
-    uint32_t timeout = 10;
     uint8_t txData[2];
     uint8_t rxData[2];
     txData[1] = 0;
@@ -26,7 +27,6 @@ uint16_t MA600_read(uint8_t num)
 // 带校验的读取
 uint16_t MA600_read_with_check(bool *error, uint8_t num)
 {
-    uint32_t timeout = 10;
     uint8_t highStateCount = 0;
     uint8_t parity;
     uint8_t txData[3];
@@ -77,7 +77,6 @@ uint16_t MA600_read_with_check(bool *error, uint8_t num)
 // 读取寄存器
 uint8_t readMagAlphaRegister(uint8_t address, uint8_t num)
 {
-    uint32_t timeout = 10;
     uint32_t delay = 1; // ms
     uint8_t txData1[2];
     uint8_t rxData1[2];
@@ -88,13 +87,17 @@ uint8_t readMagAlphaRegister(uint8_t address, uint8_t num)
     txData2[0] = 0x00;
     txData2[1] = 0x00;
     uint8_t registerReadbackValue;
+
     MA600_ACCEL_NS_L(num);
     MA600_read_write_byte((uint8_t *)txData1, (uint8_t *)rxData1, 2, 2);
     MA600_ACCEL_NS_H(num);
-    HAL_Delay(delay);
+
+    MA600_delay_ms(delay);
+
     MA600_ACCEL_NS_L(num);
     MA600_read_write_byte((uint8_t *)txData2, (uint8_t *)rxData2, 2, 2);
     MA600_ACCEL_NS_H(num);
+
     registerReadbackValue = rxData2[0];
     return registerReadbackValue;
 }
@@ -102,12 +105,6 @@ uint8_t readMagAlphaRegister(uint8_t address, uint8_t num)
 // 写入寄存器
 uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value, uint8_t num)
 {
-    hpm_stat_t stat;
-    spi_control_config_t control_config = {0}; // spi控制配置
-    spi_master_get_default_control_config(&control_config);
-    control_config.common_config.trans_mode = spi_trans_write_read_together; // 传输模式
-
-    uint32_t timeout = 10;
     uint32_t delay = 20; // ms
     uint8_t txData1[2];
     uint8_t rxData1[2];
@@ -118,13 +115,17 @@ uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value, uint8_t num)
     txData2[0] = 0x00;
     txData2[1] = 0x00;
     uint8_t registerReadbackValue;
+
     MA600_ACCEL_NS_L(num);
     MA600_read_write_byte((uint8_t *)txData1, (uint8_t *)rxData1, 2, 2);
     MA600_ACCEL_NS_H(num);
-    HAL_Delay(delay);
+
+    MA600_delay_ms(delay);
+
     MA600_ACCEL_NS_L(num);
     MA600_read_write_byte((uint8_t *)txData2, (uint8_t *)rxData2, 2, 2);
     MA600_ACCEL_NS_H(num);
+
     registerReadbackValue = rxData2[0];
     return registerReadbackValue;
 }
@@ -132,7 +133,6 @@ uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value, uint8_t num)
 // 直接读取
 uint16_t MA600_read(void)
 {
-    uint32_t timeout = 10;
     uint8_t txData[2];
     uint8_t rxData[2];
     txData[1] = 0;
@@ -148,7 +148,6 @@ uint16_t MA600_read(void)
 // 带校验的读取
 uint16_t MA600_read_with_check(bool *error)
 {
-    uint32_t timeout = 10;
     uint8_t highStateCount = 0;
     uint8_t parity;
     uint8_t txData[3];
@@ -199,7 +198,6 @@ uint16_t MA600_read_with_check(bool *error)
 // 读取寄存器
 uint8_t readMagAlphaRegister(uint8_t address)
 {
-    uint32_t timeout = 10;
     uint32_t delay = 1; // ms
     uint8_t txData1[2];
     uint8_t rxData1[2];
@@ -210,13 +208,17 @@ uint8_t readMagAlphaRegister(uint8_t address)
     txData2[0] = 0x00;
     txData2[1] = 0x00;
     uint8_t registerReadbackValue;
+
     MA600_ACCEL_NS_L();
     MA600_read_write_byte((uint8_t *)txData1, (uint8_t *)rxData1, 2, 2);
     MA600_ACCEL_NS_H();
-    // HAL_Delay(delay);
+
+    MA600_delay_ms(delay);
+
     MA600_ACCEL_NS_L();
     MA600_read_write_byte((uint8_t *)txData2, (uint8_t *)rxData2, 2, 2);
     MA600_ACCEL_NS_H();
+
     registerReadbackValue = rxData2[0];
     return registerReadbackValue;
 }
@@ -224,12 +226,6 @@ uint8_t readMagAlphaRegister(uint8_t address)
 // 写入寄存器
 uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value)
 {
-    hpm_stat_t stat;
-    spi_control_config_t control_config = {0}; // spi控制配置
-    spi_master_get_default_control_config(&control_config);
-    control_config.common_config.trans_mode = spi_trans_write_read_together; // 传输模式
-
-    uint32_t timeout = 10;
     uint32_t delay = 20; // ms
     uint8_t txData1[2];
     uint8_t rxData1[2];
@@ -240,13 +236,17 @@ uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value)
     txData2[0] = 0x00;
     txData2[1] = 0x00;
     uint8_t registerReadbackValue;
+
     MA600_ACCEL_NS_L();
     MA600_read_write_byte((uint8_t *)txData1, (uint8_t *)rxData1, 2, 2);
     MA600_ACCEL_NS_H();
-    // HAL_Delay(delay);
+
+    MA600_delay_ms(delay);
+
     MA600_ACCEL_NS_L();
     MA600_read_write_byte((uint8_t *)txData2, (uint8_t *)rxData2, 2, 2);
     MA600_ACCEL_NS_H();
+
     registerReadbackValue = rxData2[0];
     return registerReadbackValue;
 }

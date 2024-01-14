@@ -1,7 +1,7 @@
-#ifndef MA600_DRIVER_H
-#define MA600_DRIVER_H
+#ifndef _MA600_DRIVER_H__
+#define _MA600_DRIVER_H__
 
-#include "MA600Middleware.h"
+#include "bsp_ma600_middlewar.h"
 
 extern bool MA600_init(void); // MA600初始化
 
@@ -17,4 +17,4 @@ extern uint8_t readMagAlphaRegister(uint8_t address);                 // 读取�
 extern uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value); // 写入寄存器
 #endif
 
-#endif
+#endif /* _MA600_DRIVER_H__ */

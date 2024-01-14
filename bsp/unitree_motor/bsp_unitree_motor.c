@@ -6,6 +6,8 @@
 #include "stdio.h"
 #include "string.h"
 
+#include "main.h"
+
 #include "cmsis_os.h"
 
 #include "drv_usart.h"

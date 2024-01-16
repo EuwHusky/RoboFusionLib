@@ -1,11 +1,12 @@
 #ifndef _RFL_CONFIG_H__
 #define _RFL_CONFIG_H__
 
+#include "rfl_core_rm_c_board.h"
+#include "rfl_core_wpie_hpm6750.h"
+
 /* 主控 ------------------------------ */
 
-#define RFL_CORE_STM32F407 0
-#define RFL_CORE_HPM67XX 1
-#define RFL_CONFIG_CORE RFL_CORE_STM32F407
+#define RFL_CONFIG_CORE RFL_CORE_RM_C_BORAD
 
 /* 电机模块配置 ------------------------------ */
 

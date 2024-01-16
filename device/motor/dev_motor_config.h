@@ -2,7 +2,6 @@
 #define _DEV_MOTOR_CONFIG_H__
 
 #include "stdint.h"
-#include "stdlib.h"
 
 #include "rfl_config.h"
 
@@ -13,9 +12,8 @@
  */
 typedef enum RflMotorType
 {
-
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    RFL_MOTOR_RM_M2006 = 0,
+    RFL_MOTOR_RM_M2006,
     RFL_MOTOR_RM_M3508,
     RFL_MOTOR_RM_GM6020,
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
@@ -33,8 +31,10 @@ typedef enum RflMotorType
 typedef enum RflMotorControllerType
 {
     RFL_MOTOR_CONTROLLER_NONE = 0, // 无控制器
-    RFL_MOTOR_CONTROLLER_PID,      // PID控制器
-    RFL_MOTOR_CONTROLLER_UNITREE,  // Unitree直接控制器
+
+    RFL_MOTOR_CONTROLLER_PID, // PID控制器
+
+    RFL_MOTOR_CONTROLLER_UNITREE, // Unitree直接控制器
 } rfl_motor_controller_type_e;
 
 /**
@@ -45,7 +45,8 @@ typedef enum RflMotorControlMode
     RFL_MOTOR_CONTROL_MODE_NO_FORCE = 0, // 无力
     RFL_MOTOR_CONTROL_MODE_SPEED,        // 速度
     RFL_MOTOR_CONTROL_MODE_ANGLE,        // 角度
-    RFL_MOTOR_CONTROL_MODE_DIRECTION     // 方位
+    RFL_MOTOR_CONTROL_MODE_DIRECTION,    // 方位
+    RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE,  // 速度角度
 } rfl_motor_control_mode_e;
 
 /**
@@ -65,24 +66,24 @@ typedef struct RflMotorConfig
     rfl_motor_type_e type;
     rfl_motor_controller_type_e controller_type;
     rfl_motor_control_mode_e mode;
+    float control_period_factor;
     rfl_motor_angle_format_e angle_format;
     float effector_transmission_ratio;
 
-    float max_accle;
-
+    float max_speed;
     rfl_angle_s max_angle;
     rfl_angle_s min_angle;
 
-    float angle_pid_kp;
-    float angle_pid_ki;
-    float angle_pid_kd;
-    float angle_pid_max_iout;
-    float angle_pid_max_out;
     float speed_pid_kp;
     float speed_pid_ki;
     float speed_pid_kd;
     float speed_pid_max_iout;
     float speed_pid_max_out;
+    float angle_pid_kp;
+    float angle_pid_ki;
+    float angle_pid_kd;
+    float angle_pid_max_iout;
+    float angle_pid_max_out;
 
     float unitree_k_a;
     float unitree_k_s;
@@ -91,7 +92,7 @@ typedef struct RflMotorConfig
     const rfl_angle_s *external_angle;
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    uint8_t can_handle_id;
+    uint8_t can_ordinal;
     uint32_t can_id;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
@@ -102,6 +103,9 @@ typedef struct RflMotorConfig
 } rfl_motor_config_s;
 
 /* 电机模块通用参数 --------------------------- */
+
+#define RFL_MOTOR_DEFAULT_CONTROL_PERIOD_FACTOR (1.0f)
+#define RFL_MOTOR_DEFAULT_MAX_SPEED (1.0f)
 
 #define RFL_MOTOR_DEFAULT_ANGLE_RANGE (360.0f)
 
@@ -119,9 +123,9 @@ typedef struct RflMotorConfig
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
 // RM M2006 PID参数
-#define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KP (1.0f)
+#define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KP (0.8f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KI (0.0f)
-#define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KD (0.2f)
+#define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KD (0.16f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_MAX_IOUT (0.0f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_MAX_OUT (24.0f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KP (2500.0f)
@@ -154,8 +158,10 @@ typedef struct RflMotorConfig
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
-#define RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE (0.3f)
+#define RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE (0.5f)
 #define RFL_MOTOR_UNITREE_GO_M8010_6_K_SPEED (0.02f)
+// #define RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE (5.0f)
+// #define RFL_MOTOR_UNITREE_GO_M8010_6_K_SPEED (0.02f)
 
 #define RFL_MOTOR_UNITREE_DEFAULT_K_ANGLE (0.0f)
 #define RFL_MOTOR_UNITREE_DEFAULT_K_SPEED (0.0f)

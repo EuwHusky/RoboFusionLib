@@ -24,35 +24,38 @@ typedef struct RflMotor
     rfl_motor_type_e type;
     rfl_motor_controller_type_e controller_type;
     rfl_motor_control_mode_e mode_;
+    float control_period_factor; // 控制周期系数（由于控制周期不确定和PID控制的滞后性故仅以系数提供） 量纲 时间
 
     rfl_motor_angle_format_e angle_format; // 角度格式
 
-    float effector_transmission_ratio_; // 电机末端执行器转一圈时电机转子转过的圈数
+    float effector_transmission_ratio; // 电机末端执行器转一圈时电机转子转过的圈数
+
+    // bool is_reversed; // 是否反转 用于适应电机安装极性
 
     /* 控制量 */
 
-    float set_speed_; // 预期速度 单位rad * s^-1
-    float max_accle_; // 最大加速度 单位rad * s^-2
+    float set_speed_; // 预期速度 单位 rad * s^-1
+    float max_speed_; // 最大速度（仅作用于速度角度模式） 量纲 角度值/时间
 
-    rfl_angle_s set_angle_; // 预期角度
-    rfl_angle_s max_angle_; // 最大控制角度 单位degree
-    rfl_angle_s min_angle_; // 最小控制角度 单位degree
-
-    // pid_type_def speed_pid; // 速度控制PID控制器
-    // pid_type_def angle_pid; // 角度控制PID控制器
+    rfl_angle_s set_angle_;  // 预期角度 逆时针为正
+    rfl_angle_s track_angle; // 规划跟踪角度 逆时针为正
+    rfl_angle_s max_angle_;  // 最大控制角度 逆时针为正
+    rfl_angle_s min_angle_;  // 最小控制角度 逆时针为正
 
     void *controller; // 电机控制器
 
-    float control_output; // 输出控制量 物理意义视用法而定
+    float control_output_; // 输出控制量 逆时针为正 物理意义视用法而定
 
     /* 状态量 */
 
-    float speed; // 末端执行器转速 单位rad * s^-1
+    float torque_; // 电机转矩 逆时针为正 单位 N * M
 
-    rfl_angle_s angle; // 末端执行器角度
+    float speed_; // 末端执行器转速 逆时针为正 单位 rad * s^-1
 
-    const float *external_speed;       // 外部速度
-    const rfl_angle_s *external_angle; // 外部角度
+    rfl_angle_s angle_; // 末端执行器角度 逆时针为正
+
+    const float *external_speed;       // 外部速度 逆时针为正 单位 rad * s^-1
+    const rfl_angle_s *external_angle; // 外部角度 逆时针为正
 
     /* 电机驱动 */
     void *driver;
@@ -79,7 +82,7 @@ extern void rflMotorUpdateStatus(rfl_motor_s *motor);
 /**
  * @brief 更新电机控制量
  */
-extern float rflMotorUpdataControl(rfl_motor_s *motor);
+extern void rflMotorUpdataControl(rfl_motor_s *motor);
 /**
  * @brief 电机执行控制
  */
@@ -107,9 +110,9 @@ extern void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode);
  */
 extern void rflMotorSetSpeed(rfl_motor_s *motor, float set_speed);
 /**
- * @brief 设置电机预期角加速度
+ * @brief 设置电机最大角速度
  */
-extern void rflMotorSetAccle(rfl_motor_s *motor, float set_accle);
+extern void rflMotorSetMaxSpeed(rfl_motor_s *motor, float max_speed);
 /**
  * @brief 设置电机预期角度-角度值
  */

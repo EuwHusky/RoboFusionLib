@@ -5,28 +5,31 @@
 
 #include "main.h"
 
-#include "dev_motor_config.h"
+#include "rfl_config.h"
 
 typedef struct RflCanRxMessage
 {
     uint32_t can_id;
-    uint8_t rx_data[8];
+    uint8_t data[8];
 } rfl_can_rx_msg_s;
 
-extern const uint8_t *rflCan1AddRxMessageBox(uint32_t can_id);
-
-extern const uint8_t *rflCan2AddRxMessageBox(uint32_t can_id);
+typedef struct RflCan
+{
+    rfl_can_rx_msg_s *rx_msg_box;
+    uint32_t *id_table;
+    uint32_t box_size;
+} rfl_can_rx_msg_box_s;
 
 extern void rflCanInit(void);
+extern void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id);
+extern void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8]);
+extern uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id);
 
 /* 使用RM官方电机 */
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
 
-static CAN_TxHeaderTypeDef can_1_id0x200_tx_message;
-static uint8_t can_1_id0x200_send_data[8];
-
-extern void Can1RmMotorId0x200Control(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);
-extern void Can1RmMotorId0x1ffControl(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);
+extern void rflRmMotorControl(uint8_t can_ordinal, uint32_t can_id, int16_t motor1, int16_t motor2, int16_t motor3,
+                              int16_t motor4);
 
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 

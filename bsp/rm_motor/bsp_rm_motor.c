@@ -69,6 +69,9 @@ void rm_motor_update_status(rm_motor_s *rm_motor, uint8_t control_mode, uint8_t 
     rm_motor->ecd_angle =
         rm_motor->rotor_turns * RM_MOTOR_ECD_RANGE + rm_motor->feedback_.ecd - rm_motor->ecd_angle_offset;
     rm_motor->deg_angle = (float)rm_motor->ecd_angle * rm_motor->ecd_to_effector_angle_factor;
+
+    // 计算电机转矩
+    rm_motor->torque = 0.0f;
 }
 
 void rm_motor_reset_angle(rm_motor_s *rm_motor)

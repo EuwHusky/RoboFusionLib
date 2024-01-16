@@ -1,6 +1,6 @@
 #include "drv_machine_time.h"
 
-#if (RFL_CONFIG_CORE == RFL_CORE_HPM67XX)
+#if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
 
 #include "cnu_hpm_bsp_cyc.h"
 #include "hpm_csr_drv.h"

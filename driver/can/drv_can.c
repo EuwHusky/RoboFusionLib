@@ -3,11 +3,65 @@
 
 #include "drv_can.h"
 
+#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
+#define RFL_CAN_NUM RFL_CORE_RM_C_BORAD_CAN_NUM
+#elif RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
+#define RFL_CAN_NUM RFL_CORE_WPIE_HPM6750_CAN_NUM
+#endif
+
+static rfl_can_rx_msg_box_s *rfl_can_rx_message_boxes = NULL;
+
+void rflCanRxMessageBoxesInit(void)
+{
+    rfl_can_rx_message_boxes = (rfl_can_rx_msg_box_s *)malloc(RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
+
+    for (uint8_t i = 0; i < RFL_CAN_NUM; i++)
+    {
+        rfl_can_rx_message_boxes[i].box_size = 0;
+        rfl_can_rx_message_boxes[i].rx_msg_box = (rfl_can_rx_msg_s *)malloc(sizeof(rfl_can_rx_msg_s));
+        rfl_can_rx_message_boxes[i].id_table = (uint32_t *)malloc(sizeof(uint32_t));
+    }
+}
+
+void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id)
+{
+    rfl_can_rx_message_boxes[can_ordinal - 1].box_size++;
+    rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box =
+        (rfl_can_rx_msg_s *)realloc(rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box,
+                                    rfl_can_rx_message_boxes[can_ordinal - 1].box_size * sizeof(rfl_can_rx_msg_s));
+    rfl_can_rx_message_boxes[can_ordinal - 1].id_table =
+        (uint32_t *)realloc(rfl_can_rx_message_boxes[can_ordinal - 1].id_table,
+                            rfl_can_rx_message_boxes[can_ordinal - 1].box_size * sizeof(uint32_t));
+    rfl_can_rx_message_boxes[can_ordinal - 1].id_table[rfl_can_rx_message_boxes[can_ordinal - 1].box_size - 1] = can_id;
+}
+
+void rflCanSaveToRxMessageBox(uint8_t can_ordinal, uint32_t can_id, uint8_t rx_data[8])
+{
+    for (uint8_t i = 0; i < rfl_can_rx_message_boxes[can_ordinal - 1].box_size; i++)
+    {
+        if (rfl_can_rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
+        {
+            memcpy(rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box[i].data, rx_data, 8 * sizeof(uint8_t));
+            break;
+        }
+    }
+}
+
+uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id)
+{
+    for (uint8_t i = 0; i < rfl_can_rx_message_boxes[can_ordinal - 1].box_size; i++)
+    {
+        if (rfl_can_rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
+            return rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box[i].data;
+    }
+
+    return NULL;
+}
+
+#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
+
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
-
-static rfl_can_rx_msg_s rfl_can_1_rx_msg_boxes[8] = {0};
-static rfl_can_rx_msg_s rfl_can_2_rx_msg_boxes[8] = {0};
 
 /**
  * @brief          hal CAN fifo call back, receive motor data
@@ -28,141 +82,45 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
     if (&hcan1 == hcan)
     {
-        switch (rx_header.StdId)
-        {
-        case 0x201:
-            memcpy(rfl_can_1_rx_msg_boxes[0].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x202:
-            memcpy(rfl_can_1_rx_msg_boxes[1].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x203:
-            memcpy(rfl_can_1_rx_msg_boxes[2].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x204:
-            memcpy(rfl_can_1_rx_msg_boxes[3].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x205:
-            memcpy(rfl_can_1_rx_msg_boxes[4].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x206:
-            memcpy(rfl_can_1_rx_msg_boxes[5].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x207:
-            memcpy(rfl_can_1_rx_msg_boxes[6].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x208:
-            memcpy(rfl_can_1_rx_msg_boxes[7].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-
-        default:
-            break;
-        }
+        rflCanSaveToRxMessageBox(1, rx_header.StdId, rx_data);
     }
     else if (&hcan2 == hcan)
     {
-        switch (rx_header.StdId)
-        {
-        case 0x201:
-            memcpy(rfl_can_2_rx_msg_boxes[0].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x202:
-            memcpy(rfl_can_2_rx_msg_boxes[1].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x203:
-            memcpy(rfl_can_2_rx_msg_boxes[2].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x204:
-            memcpy(rfl_can_2_rx_msg_boxes[3].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x205:
-            memcpy(rfl_can_2_rx_msg_boxes[4].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x206:
-            memcpy(rfl_can_2_rx_msg_boxes[5].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x207:
-            memcpy(rfl_can_2_rx_msg_boxes[6].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-        case 0x208:
-            memcpy(rfl_can_2_rx_msg_boxes[7].rx_data, rx_data, 8 * sizeof(uint8_t));
-            break;
-
-        default:
-            break;
-        }
+        rflCanSaveToRxMessageBox(2, rx_header.StdId, rx_data);
     }
 }
 
-const uint8_t *rflCan1AddRxMessageBox(uint32_t can_id)
+void can_start(void)
 {
-    switch (can_id)
-    {
-    case 0x201:
-        return rfl_can_1_rx_msg_boxes[0].rx_data;
-    case 0x202:
-        return rfl_can_1_rx_msg_boxes[1].rx_data;
-    case 0x203:
-        return rfl_can_1_rx_msg_boxes[2].rx_data;
-    case 0x204:
-        return rfl_can_1_rx_msg_boxes[3].rx_data;
-    case 0x205:
-        return rfl_can_1_rx_msg_boxes[4].rx_data;
-    case 0x206:
-        return rfl_can_1_rx_msg_boxes[5].rx_data;
-    case 0x207:
-        return rfl_can_1_rx_msg_boxes[6].rx_data;
-    case 0x208:
-        return rfl_can_1_rx_msg_boxes[7].rx_data;
+    HAL_CAN_Start(&hcan1);
+    HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
-    default:
-        break;
-    }
-
-    return NULL;
+    HAL_CAN_Start(&hcan2);
+    HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
 }
 
-const uint8_t *rflCan2AddRxMessageBox(uint32_t can_id)
+#endif /* RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD */
+
+void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8])
 {
-    switch (can_id)
-    {
-    case 0x201:
-        return rfl_can_2_rx_msg_boxes[0].rx_data;
-    case 0x202:
-        return rfl_can_2_rx_msg_boxes[1].rx_data;
-    case 0x203:
-        return rfl_can_2_rx_msg_boxes[2].rx_data;
-    case 0x204:
-        return rfl_can_2_rx_msg_boxes[3].rx_data;
-    case 0x205:
-        return rfl_can_2_rx_msg_boxes[4].rx_data;
-    case 0x206:
-        return rfl_can_2_rx_msg_boxes[5].rx_data;
-    case 0x207:
-        return rfl_can_2_rx_msg_boxes[6].rx_data;
-    case 0x208:
-        return rfl_can_2_rx_msg_boxes[7].rx_data;
+#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
+    CAN_TxHeaderTypeDef tx_header = {0};
+    uint32_t send_mail_box;
+    tx_header.StdId = can_id;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 0x08;
 
-    default:
-        break;
-    }
-
-    return NULL;
-
-    // static uint8_t msg_boxes_num = 0;
-
-    // if (msg_boxes_num == 6) // 一路CAN最多挂载6个设备
-    //     return NULL;
-
-    // msg_boxes_num++;
-
-    // rfl_can_2_rx_msg_boxes[msg_boxes_num - 1].can_id = can_id;
-
-    // return rfl_can_2_rx_msg_boxes[msg_boxes_num - 1].rx_data;
+    if (can_ordinal == 1)
+        HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data, &send_mail_box);
+    else if (can_ordinal == 2)
+        HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data, &send_mail_box);
+#endif /* RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD */
 }
 
 void can_set_filter(void)
 {
+#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
     CAN_FilterTypeDef can_filter_st;
     can_filter_st.FilterActivation = ENABLE;
     can_filter_st.FilterMode = CAN_FILTERMODE_IDMASK;
@@ -178,73 +136,37 @@ void can_set_filter(void)
     can_filter_st.SlaveStartFilterBank = 14;
     can_filter_st.FilterBank = 14;
     HAL_CAN_ConfigFilter(&hcan2, &can_filter_st);
-}
-
-void can_start(void)
-{
-    HAL_CAN_Start(&hcan1);
-    HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-
-    HAL_CAN_Start(&hcan2);
-    HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+#endif /* RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD */
 }
 
 void rflCanInit(void)
 {
     can_set_filter();
+
+#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
     can_start();
+#endif /* RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD */
 
-    // rfl_can_1_rx_msg_boxes = (rfl_can_rx_msg_s *)malloc(6 * sizeof(rfl_can_rx_msg_s));
-    // memset(rfl_can_1_rx_msg_boxes, 0, 6 * sizeof(rfl_can_1_rx_msg_boxes));
-
-    // rfl_can_2_rx_msg_boxes = (rfl_can_rx_msg_s *)malloc(6 * sizeof(rfl_can_rx_msg_s));
-    // memset(rfl_can_2_rx_msg_boxes, 0, 6 * sizeof(rfl_can_2_rx_msg_boxes));
+    rflCanRxMessageBoxesInit();
 }
 
 /* 使用RM官方电机 */
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
 
-static CAN_TxHeaderTypeDef can_1_id0x200_tx_message;
-static uint8_t can_1_id0x200_send_data[8];
-static CAN_TxHeaderTypeDef can_1_id0x1ff_tx_message;
-static uint8_t can_1_id0x1ff_send_data[8];
-
-void Can1RmMotorId0x200Control(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
+static uint8_t can_send_data[RFL_CAN_NUM][8];
+void rflRmMotorControl(uint8_t can_ordinal, uint32_t can_id, int16_t motor1, int16_t motor2, int16_t motor3,
+                       int16_t motor4)
 {
-    uint32_t send_mail_box;
-    can_1_id0x200_tx_message.StdId = 0x200;
-    can_1_id0x200_tx_message.IDE = CAN_ID_STD;
-    can_1_id0x200_tx_message.RTR = CAN_RTR_DATA;
-    can_1_id0x200_tx_message.DLC = 0x08;
-    can_1_id0x200_send_data[0] = motor1 >> 8;
-    can_1_id0x200_send_data[1] = motor1;
-    can_1_id0x200_send_data[2] = motor2 >> 8;
-    can_1_id0x200_send_data[3] = motor2;
-    can_1_id0x200_send_data[4] = motor3 >> 8;
-    can_1_id0x200_send_data[5] = motor3;
-    can_1_id0x200_send_data[6] = motor4 >> 8;
-    can_1_id0x200_send_data[7] = motor4;
+    can_send_data[can_ordinal][0] = motor1 >> 8;
+    can_send_data[can_ordinal][1] = motor1;
+    can_send_data[can_ordinal][2] = motor2 >> 8;
+    can_send_data[can_ordinal][3] = motor2;
+    can_send_data[can_ordinal][4] = motor3 >> 8;
+    can_send_data[can_ordinal][5] = motor3;
+    can_send_data[can_ordinal][6] = motor4 >> 8;
+    can_send_data[can_ordinal][7] = motor4;
 
-    HAL_CAN_AddTxMessage(&hcan1, &can_1_id0x200_tx_message, can_1_id0x200_send_data, &send_mail_box);
-}
-
-void Can1RmMotorId0x1ffControl(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
-{
-    uint32_t send_mail_box;
-    can_1_id0x1ff_tx_message.StdId = 0x1ff;
-    can_1_id0x1ff_tx_message.IDE = CAN_ID_STD;
-    can_1_id0x1ff_tx_message.RTR = CAN_RTR_DATA;
-    can_1_id0x1ff_tx_message.DLC = 0x08;
-    can_1_id0x1ff_send_data[0] = motor1 >> 8;
-    can_1_id0x1ff_send_data[1] = motor1;
-    can_1_id0x1ff_send_data[2] = motor2 >> 8;
-    can_1_id0x1ff_send_data[3] = motor2;
-    can_1_id0x1ff_send_data[4] = motor3 >> 8;
-    can_1_id0x1ff_send_data[5] = motor3;
-    can_1_id0x1ff_send_data[6] = motor4 >> 8;
-    can_1_id0x1ff_send_data[7] = motor4;
-
-    HAL_CAN_AddTxMessage(&hcan1, &can_1_id0x1ff_tx_message, can_1_id0x1ff_send_data, &send_mail_box);
+    rflCanSendData(can_ordinal, can_id, can_send_data[can_ordinal]);
 }
 
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */

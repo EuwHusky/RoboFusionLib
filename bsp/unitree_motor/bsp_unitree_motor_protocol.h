@@ -8,8 +8,6 @@
 #include "stdbool.h"
 #include "stdint.h"
 
-#include "main.h"
-
 #pragma pack(1)
 
 /**

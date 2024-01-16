@@ -13,20 +13,20 @@ typedef struct RflChassis
     void *parameter; // 底盘参数
 
     /* 控制量 */
-    float set_vx; // 设定的底盘速度 前进方向 前为正 单位 米每秒（m/s）
-    float set_vy; // 设定的底盘速度 左右方向 左为正 单位 米每秒（m/s）
-    float set_wz; // 设定的底盘旋转角速度 逆时针为正 单位 弧度每秒（rad/s）
+    float set_vx_; // 设定的底盘速度 前进方向 前为正 单位 米每秒（m/s）
+    float set_vy_; // 设定的底盘速度 左右方向 左为正 单位 米每秒（m/s）
+    float set_wz_; // 设定的底盘旋转角速度 逆时针为正 单位 弧度每秒（rad/s）
 
     void *controller; // 底盘控制器
 
     /* 状态量 */
-    float vx; // 底盘速度 前进方向 前为正 单位 米每秒（m/s）
-    float vy; // 底盘速度 左右方向 左为正 单位 米每秒（m/s）
-    float wz; // 底盘旋转角速度 逆时针为正 单位 弧度每秒（rad/s）
+    float vx_; // 底盘速度 前进方向 前为正 单位 米每秒（m/s）
+    float vy_; // 底盘速度 左右方向 左为正 单位 米每秒（m/s）
+    float wz_; // 底盘旋转角速度 逆时针为正 单位 弧度每秒（rad/s）
 
     rfl_angle_s angle_offset;
     const rfl_angle_s *external_angle;
-    rfl_angle_s angle; //
+    rfl_angle_s angle_; //
 
     /* 设备 */
     uint8_t motor_num;

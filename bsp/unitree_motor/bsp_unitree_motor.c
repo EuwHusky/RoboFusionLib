@@ -42,6 +42,8 @@ void unitree_motor_init(unitree_motor_s *unitree_motor)
     unitree_motor->k_s = 0.0f;
     unitree_motor_control(unitree_motor);
 
+    unitree_motor_control_delay(5);
+
     // 记录上电时的电机角度
     extract_data(unitree_motor);
     unitree_motor->angle_offset = unitree_motor->angle;
@@ -57,8 +59,6 @@ void unitree_motor_control(unitree_motor_s *unitree_motor)
     modify_data(unitree_motor);
 
     usart1_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
-
-    unitree_motor_control_delay(1);
 }
 
 void unitree_motor_reset_angle(unitree_motor_s *unitree_motor)

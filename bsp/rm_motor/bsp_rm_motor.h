@@ -80,6 +80,7 @@ typedef struct RmMotor
     float effector_transmission_ratio; // 末端执行器转一圈时电机转子转过的圈数
     float ecd_to_effector_angle_factor;
     float rpm_to_effector_speed_factor;
+    float current_to_torque_factor;
 
     const uint8_t *can_rx_data;
     rm_motor_feedback_s feedback_; // raw data
@@ -93,6 +94,7 @@ typedef struct RmMotor
     int16_t min_rotor_turns;
     int32_t ecd_angle; // ecd
 
+    float torque;    // N*M 电机转矩
     float speed;     // rad/s 末端执行器转速
     float deg_angle; // degree 末端执行器角度
 

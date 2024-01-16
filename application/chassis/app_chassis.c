@@ -280,9 +280,9 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *chassis_config
         break;
     }
 
-    chassis->set_vx = 0.0f;
-    chassis->set_vy = 0.0f;
-    chassis->set_wz = 0.0f;
+    chassis->set_vx_ = 0.0f;
+    chassis->set_vy_ = 0.0f;
+    chassis->set_wz_ = 0.0f;
 
     if (chassis_config->controller_type == RFL_CHASSIS_CONTROLLER_PID)
     {
@@ -301,7 +301,7 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *chassis_config
 
     rflAngleUpdate(&chassis->angle_offset, RFL_ANGLE_FORMAT_DEGREE, chassis_config->angle_offset.deg);
     chassis->external_angle = chassis_config->external_angle;
-    rflAngleUpdate(&chassis->angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+    rflAngleUpdate(&chassis->angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
 
     chassis->motor_num = chassis_config->motor_num;
     chassis->motors = (rfl_motor_s *)malloc(chassis_config->motor_num * sizeof(rfl_motor_s));
@@ -356,14 +356,14 @@ void chassis_update_status(rfl_chassis_s *chassis)
         float wheels_speed[4] = {0.0f};
         for (uint8_t i = 0; i < chassis->motor_num; i++)
         {
-            wheels_speed[i] = rflConvertTfToSign(motor_polarity[i]) * chassis->motors[i].speed * chassis->wheel_radius;
+            wheels_speed[i] = rflConvertTfToSign(motor_polarity[i]) * chassis->motors[i].speed_ * chassis->wheel_radius;
         }
-        chassis->vx = (wheels_speed[0] + wheels_speed[1] + wheels_speed[2] + wheels_speed[3]) / 4.0f;
-        chassis->vy = (wheels_speed[0] - wheels_speed[1] + wheels_speed[2] - wheels_speed[3]) / 4.0f;
-        chassis->wz = (wheels_speed[0] + wheels_speed[1] - wheels_speed[2] - wheels_speed[3]) /
-                      ((((rfl_chassis_mecanum_parameter_s *)chassis->parameter)->length +
-                        ((rfl_chassis_mecanum_parameter_s *)chassis->parameter)->width) *
-                       2.0f);
+        chassis->vx_ = (wheels_speed[0] + wheels_speed[1] + wheels_speed[2] + wheels_speed[3]) / 4.0f;
+        chassis->vy_ = (wheels_speed[0] - wheels_speed[1] + wheels_speed[2] - wheels_speed[3]) / 4.0f;
+        chassis->wz_ = (wheels_speed[0] + wheels_speed[1] - wheels_speed[2] - wheels_speed[3]) /
+                       ((((rfl_chassis_mecanum_parameter_s *)chassis->parameter)->length +
+                         ((rfl_chassis_mecanum_parameter_s *)chassis->parameter)->width) *
+                        2.0f);
     }
     else if (chassis->type == RFL_CHASSIS_COAXIAL_MECANUM)
     {
@@ -371,10 +371,10 @@ void chassis_update_status(rfl_chassis_s *chassis)
         float wheels_speed[4] = {0.0f};
         for (uint8_t i = 0; i < chassis->motor_num; i++)
         {
-            wheels_speed[i] = rflConvertTfToSign(motor_polarity[i]) * chassis->motors[i].speed * chassis->wheel_radius;
+            wheels_speed[i] = rflConvertTfToSign(motor_polarity[i]) * chassis->motors[i].speed_ * chassis->wheel_radius;
         }
 
-        chassis->vx = (wheels_speed[0] + wheels_speed[1] + wheels_speed[2] + wheels_speed[3]) / 4.0f;
+        chassis->vx_ = (wheels_speed[0] + wheels_speed[1] + wheels_speed[2] + wheels_speed[3]) / 4.0f;
 
         float calculating_polarity[4] = {0.0f};
         for (uint8_t i = 0; i < chassis->motor_num; i++)
@@ -382,14 +382,14 @@ void chassis_update_status(rfl_chassis_s *chassis)
             calculating_polarity[i] = rflConvertTfToSign(
                 ((rfl_chassis_coaxial_mecanum_parameter_s *)chassis->parameter)->mecanum_polarity[0]);
         }
-        chassis->vy = (calculating_polarity[0] * wheels_speed[0] + calculating_polarity[1] * wheels_speed[1] +
-                       calculating_polarity[2] * wheels_speed[2] + calculating_polarity[3] * wheels_speed[3]) /
-                      4.0f;
+        chassis->vy_ = (calculating_polarity[0] * wheels_speed[0] + calculating_polarity[1] * wheels_speed[1] +
+                        calculating_polarity[2] * wheels_speed[2] + calculating_polarity[3] * wheels_speed[3]) /
+                       4.0f;
 
-        chassis->wz = ((wheels_speed[0] - wheels_speed[2]) /
-                       (4.0f * ((rfl_chassis_coaxial_mecanum_parameter_s *)chassis->parameter)->inner_radius)) +
-                      ((wheels_speed[1] - wheels_speed[3]) /
-                       (4.0f * ((rfl_chassis_coaxial_mecanum_parameter_s *)chassis->parameter)->outer_radius));
+        chassis->wz_ = ((wheels_speed[0] - wheels_speed[2]) /
+                        (4.0f * ((rfl_chassis_coaxial_mecanum_parameter_s *)chassis->parameter)->inner_radius)) +
+                       ((wheels_speed[1] - wheels_speed[3]) /
+                        (4.0f * ((rfl_chassis_coaxial_mecanum_parameter_s *)chassis->parameter)->outer_radius));
     }
     else if (chassis->type == RFL_CHASSIS_OMNI)
     {
@@ -397,13 +397,13 @@ void chassis_update_status(rfl_chassis_s *chassis)
         float wheels_speed[4] = {0.0f};
         for (uint8_t i = 0; i < chassis->motor_num; i++)
         {
-            wheels_speed[i] = rflConvertTfToSign(motor_polarity[i]) * chassis->motors[i].speed * chassis->wheel_radius;
+            wheels_speed[i] = rflConvertTfToSign(motor_polarity[i]) * chassis->motors[i].speed_ * chassis->wheel_radius;
         }
         float factor = 0.1767766952f; // 此值为 √2 / 8
 
-        chassis->vx = (wheels_speed[0] + wheels_speed[1] + wheels_speed[2] + wheels_speed[3]) * factor;
-        chassis->vy = (wheels_speed[0] - wheels_speed[1] + wheels_speed[2] - wheels_speed[3]) * factor;
-        chassis->vy = (wheels_speed[0] + wheels_speed[1] - wheels_speed[2] - wheels_speed[3]) / 4.0f;
+        chassis->vx_ = (wheels_speed[0] + wheels_speed[1] + wheels_speed[2] + wheels_speed[3]) * factor;
+        chassis->vy_ = (wheels_speed[0] - wheels_speed[1] + wheels_speed[2] - wheels_speed[3]) * factor;
+        chassis->vy_ = (wheels_speed[0] + wheels_speed[1] - wheels_speed[2] - wheels_speed[3]) / 4.0f;
     }
     else if (chassis->type == RFL_CHASSIS_DUAL_STEER)
     {

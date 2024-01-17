@@ -52,10 +52,17 @@ void unitree_motor_init(unitree_motor_s *unitree_motor)
 void unitree_motor_update_status(unitree_motor_s *unitree_motor)
 {
     extract_data(unitree_motor);
+
+    unitree_motor->shaft_speed = unitree_motor->speed / unitree_motor->effector_transmission_ratio;
+    unitree_motor->shaft_angle =
+        (unitree_motor->angle - unitree_motor->angle_offset) / unitree_motor->effector_transmission_ratio;
 }
 
 void unitree_motor_control(unitree_motor_s *unitree_motor)
 {
+    unitree_motor->set_angle =
+        unitree_motor->set_shaft_angle * unitree_motor->effector_transmission_ratio + unitree_motor->angle_offset;
+
     modify_data(unitree_motor);
 
     usart1_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));

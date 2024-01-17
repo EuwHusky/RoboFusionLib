@@ -33,13 +33,19 @@ typedef struct UnitreeMotor
 
     uint8_t id;         // 电机ID 0~14
     uint8_t mode;       // 0:空闲, 1:闭环FOC控制, 2:电机标定
-    float torque;       // 当前实际电机输出力矩
-    float speed;        // speed
-    float angle;        // 当前电机位置（主控0点修正，电机关节还是以编码器0点为准）
+    float torque;       // 当前实际电机输出力矩 NM
+    float speed;        // speed rad/s
+    float angle;        // 当前电机位置（主控0点修正，电机关节还是以编码器0点为准） rad
     int32_t temp;       // 温度
     uint8_t error_code; // 错误码
     float foot_force;   // 足端气压传感器数据 12bit (0-4095)
 
+    // float set_shaft_speed;
+    float set_shaft_angle;
+    float shaft_speed;
+    float shaft_angle;
+
+    float effector_transmission_ratio;
     float angle_offset;
 } unitree_motor_s;
 

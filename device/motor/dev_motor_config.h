@@ -1,6 +1,7 @@
 #ifndef _DEV_MOTOR_CONFIG_H__
 #define _DEV_MOTOR_CONFIG_H__
 
+#include "stdbool.h"
 #include "stdint.h"
 
 #include "rfl_config.h"
@@ -69,6 +70,7 @@ typedef struct RflMotorConfig
     float control_period_factor;
     rfl_motor_angle_format_e angle_format;
     float effector_transmission_ratio;
+    bool is_reversed;
 
     float max_speed;
     rfl_angle_s max_angle;
@@ -125,13 +127,13 @@ typedef struct RflMotorConfig
 // RM M2006 PID参数
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KP (0.8f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KI (0.0f)
-#define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KD (0.16f)
+#define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KD (0.2f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_MAX_IOUT (0.0f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_MAX_OUT (24.0f)
-#define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KP (2500.0f)
-#define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KI (250.0f)
+#define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KP (2200.0f)
+#define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KI (100.0f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KD (0.0f)
-#define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_MAX_IOUT (2500.0f)
+#define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_MAX_IOUT (1000.0f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_MAX_OUT (10000.0f)
 // RM M3508 PID参数
 #define RFL_MOTOR_RM_M3508_DEFAULT_ANGLE_PID_KP (0.8f)

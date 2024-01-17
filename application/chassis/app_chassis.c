@@ -29,7 +29,7 @@ void rflChassisGetDefaultConfig(rfl_chassis_config_s *chassis_config, rfl_chassi
     switch (chassis_config->type)
     {
     case RFL_CHASSIS_MECANUM:
-        // 默认电机参数
+        // 默认底盘参数
         chassis_config->wheel_radius = RFL_CHASSIS_DEFAULT_MECANUM_WHEEL_RADIUS;
         chassis_config->length = RFL_CHASSIS_MECANUM_DEFAULT_LENGTH;
         chassis_config->width = RFL_CHASSIS_MECANUM_DEFAULT_WIDTH;
@@ -40,13 +40,13 @@ void rflChassisGetDefaultConfig(rfl_chassis_config_s *chassis_config, rfl_chassi
         chassis_config->mecanum_polarity[1] = 1;
         chassis_config->mecanum_polarity[2] = 0;
         chassis_config->mecanum_polarity[3] = 1;
-        // 默认电机参数
+        // 默认底盘参数
         chassis_config->wheel_radius = RFL_CHASSIS_DEFAULT_MECANUM_WHEEL_RADIUS;
         chassis_config->inner_radius = RFL_CHASSIS_COAXIAL_MECANUM_DEFAULT_INNER_RADIUS;
         chassis_config->outer_radius = RFL_CHASSIS_COAXIAL_MECANUM_DEFAULT_OUTER_RADIUS;
         break;
     case RFL_CHASSIS_OMNI:
-        // 默认电机参数
+        // 默认底盘参数
         chassis_config->wheel_radius = RFL_CHASSIS_DEFAULT_DRIVING_WHEEL_RADIUS;
         chassis_config->length = RFL_CHASSIS_STEER_DEFAULT_LENGTH;
         break;
@@ -59,7 +59,7 @@ void rflChassisGetDefaultConfig(rfl_chassis_config_s *chassis_config, rfl_chassi
             else
                 chassis_config->is_steer_motor[i] = false;
         }
-        // 默认电机参数
+        // 默认底盘参数
         chassis_config->wheel_radius = RFL_CHASSIS_DEFAULT_DRIVING_WHEEL_RADIUS;
         chassis_config->length = RFL_CHASSIS_STEER_DEFAULT_LENGTH;
         break;
@@ -72,7 +72,7 @@ void rflChassisGetDefaultConfig(rfl_chassis_config_s *chassis_config, rfl_chassi
             else
                 chassis_config->is_steer_motor[i] = false;
         }
-        // 默认电机参数
+        // 默认底盘参数
         chassis_config->wheel_radius = RFL_CHASSIS_DEFAULT_DRIVING_WHEEL_RADIUS;
         chassis_config->length = RFL_CHASSIS_STEER_DEFAULT_LENGTH;
         break;
@@ -314,6 +314,8 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *chassis_config
         motor_config.mode = RFL_MOTOR_CONTROL_MODE_SPEED;
         motor_config.effector_transmission_ratio = chassis_config->motor_config_list[i].effector_transmission_ratio;
 
+        motor_config.external_angle = chassis_config->motor_config_list[i].external_angle;
+
         motor_config.angle_pid_kp = chassis_config->motor_config_list[i].angle_pid_param[0];
         motor_config.angle_pid_ki = chassis_config->motor_config_list[i].angle_pid_param[1];
         motor_config.angle_pid_kd = chassis_config->motor_config_list[i].angle_pid_param[2];
@@ -324,8 +326,6 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *chassis_config
         motor_config.speed_pid_kd = chassis_config->motor_config_list[i].speed_pid_param[2];
         motor_config.speed_pid_max_iout = chassis_config->motor_config_list[i].speed_pid_param[3];
         motor_config.speed_pid_max_out = chassis_config->motor_config_list[i].speed_pid_param[4];
-
-        motor_config.external_angle = chassis_config->motor_config_list[i].external_angle;
 
         motor_config.can_ordinal = chassis_config->motor_config_list[i].can_ordinal;
         motor_config.can_id = chassis_config->motor_config_list[i].can_id;

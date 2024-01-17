@@ -28,9 +28,12 @@ typedef struct RflMotor
 
     rfl_motor_angle_format_e angle_format; // 角度格式
 
-    float effector_transmission_ratio; // 电机末端执行器转一圈时电机转子转过的圈数
+    // float effector_transmission_ratio; // 电机末端执行器转一圈时电机转子转过的圈数
 
-    // bool is_reversed; // 是否反转 用于适应电机安装极性
+    bool is_reversed; // 是否反转 用于适应电机安装极性
+
+    rfl_angle_s max_angle_; // 最大控制角度 逆时针为正
+    rfl_angle_s min_angle_; // 最小控制角度 逆时针为正
 
     /* 控制量 */
 
@@ -39,8 +42,6 @@ typedef struct RflMotor
 
     rfl_angle_s set_angle_;  // 预期角度 逆时针为正
     rfl_angle_s track_angle; // 规划跟踪角度 逆时针为正
-    rfl_angle_s max_angle_;  // 最大控制角度 逆时针为正
-    rfl_angle_s min_angle_;  // 最小控制角度 逆时针为正
 
     void *controller; // 电机控制器
 
@@ -82,7 +83,7 @@ extern void rflMotorUpdateStatus(rfl_motor_s *motor);
 /**
  * @brief 更新电机控制量
  */
-extern void rflMotorUpdataControl(rfl_motor_s *motor);
+extern void rflMotorUpdateControl(rfl_motor_s *motor);
 /**
  * @brief 电机执行控制
  */

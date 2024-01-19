@@ -68,9 +68,10 @@ void unitree_motor_control(unitree_motor_s *unitree_motor)
     usart1_tx_dma_enable((uint8_t *)(&(unitree_motor->command)), sizeof(unitree_motor_command_s));
 }
 
-void unitree_motor_reset_angle(unitree_motor_s *unitree_motor)
+void unitree_motor_reset_angle(unitree_motor_s *unitree_motor, float rad_angle)
 {
-    unitree_motor->angle_offset = unitree_motor->angle;
+    float set_angle = rad_angle * unitree_motor->effector_transmission_ratio;
+    unitree_motor->angle_offset = unitree_motor->angle - set_angle;
 }
 
 void modify_data(unitree_motor_s *unitree_motor)
@@ -128,9 +129,6 @@ uint8_t extract_data(unitree_motor_s *unitree_motor)
 extern UART_HandleTypeDef huart1;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
-extern UART_HandleTypeDef huart6;
-extern DMA_HandleTypeDef hdma_usart6_rx;
-extern DMA_HandleTypeDef hdma_usart6_tx;
 
 #define UNITREE_MOTOR_FDB_FRAME_LENGTH (16U)
 #define UNITREE_MOTOR_FDB_UART_RX_BUFFER_NUM (32U)

@@ -319,6 +319,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         break;
     }
 
+    // 输入输出需考虑反转
     motor->torque_ *= (motor->is_reversed ? -1.0f : 1.0f);
     motor->speed_ *= (motor->is_reversed ? -1.0f : 1.0f);
     rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg * (motor->is_reversed ? -1.0f : 1.0f));
@@ -351,6 +352,7 @@ void rflMotorUpdateControl(rfl_motor_s *motor)
         break;
     }
 
+    // 输入输出需考虑反转
     if (motor->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
         ((unitree_motor_s *)(motor->driver))->set_shaft_angle *= (motor->is_reversed ? -1.0f : 1.0f);
     else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
@@ -387,21 +389,29 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
 /**
  * @brief 重置电机零位，将当前位置设为零位
  */
-void rflMotorResetAngle(rfl_motor_s *motor)
+void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float source_angle)
 {
+    rfl_angle_s angle = {0};
+    rflAngleUpdate(&angle, angle_format, source_angle * (motor->is_reversed ? -1.0f : 1.0f)); // 输入输出需考虑反转
+
+    if (angle.deg > motor->max_angle_.deg)
+        rflAngleUpdate(&angle, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
+    else if (angle.deg < motor->min_angle_.deg)
+        rflAngleUpdate(&angle, RFL_ANGLE_FORMAT_DEGREE, motor->min_angle_.deg);
+
     switch (motor->type)
     {
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
     case RFL_MOTOR_RM_M2006:
     case RFL_MOTOR_RM_M3508:
     case RFL_MOTOR_RM_GM6020:
-        rm_motor_reset_angle((rm_motor_s *)(motor->driver));
+        rm_motor_reset_angle((rm_motor_s *)(motor->driver), angle.deg);
         break;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
     case RFL_MOTOR_UNITREE_GO_M8010_6:
-        unitree_motor_reset_angle((unitree_motor_s *)(motor->driver));
+        unitree_motor_reset_angle((unitree_motor_s *)(motor->driver), angle.rad);
         break;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
@@ -511,34 +521,19 @@ void rflMotorSetMaxSpeed(rfl_motor_s *motor, float max_speed)
     }
 }
 /**
- * @brief 设置电机预期角度-角度值
+ * @brief 设置电机预期角度
  */
-void rflMotorSetDegAngle(rfl_motor_s *motor, float degree_angle)
+void rflMotorSetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float angle)
 {
-    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, degree_angle);
+    rflAngleUpdate(&motor->set_angle_, angle_format, angle);
 }
 /**
- * @brief 设置电机预期角度-弧度制
+ * @brief 设置电机角度范围
  */
-void rflMotorSetRadAngle(rfl_motor_s *motor, float radian_angle)
+void rflMotorSetDegAngleLimit(rfl_motor_s *motor, rfl_angle_format_e angle_format, float max_angle, float min_angle)
 {
-    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_RADIAN, radian_angle);
-}
-/**
- * @brief 设置电机角度范围-角度值
- */
-void rflMotorSetDegAngleLimit(rfl_motor_s *motor, float max_degree_angle, float min_degree_angle)
-{
-    rflAngleUpdate(&motor->max_angle_, RFL_ANGLE_FORMAT_DEGREE, max_degree_angle);
-    rflAngleUpdate(&motor->min_angle_, RFL_ANGLE_FORMAT_DEGREE, min_degree_angle);
-}
-/**
- * @brief 设置电机角度范围-弧度制
- */
-void rflMotorSetRadAngleLimit(rfl_motor_s *motor, float max_radian_angle, float min_radian_angle)
-{
-    rflAngleUpdate(&motor->max_angle_, RFL_ANGLE_FORMAT_RADIAN, max_radian_angle);
-    rflAngleUpdate(&motor->min_angle_, RFL_ANGLE_FORMAT_RADIAN, min_radian_angle);
+    rflAngleUpdate(&motor->max_angle_, angle_format, max_angle);
+    rflAngleUpdate(&motor->min_angle_, angle_format, min_angle);
 }
 
 /**

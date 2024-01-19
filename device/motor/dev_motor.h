@@ -90,7 +90,7 @@ extern void rflMotorExecuteControl(rfl_motor_s *motor);
 /**
  * @brief 重置电机零位，将当前位置设为零位
  */
-extern void rflMotorResetAngle(rfl_motor_s *motor);
+extern void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float angle);
 
 /**
  * @brief 设置电机控制模式
@@ -105,21 +105,14 @@ extern void rflMotorSetSpeed(rfl_motor_s *motor, float set_speed);
  */
 extern void rflMotorSetMaxSpeed(rfl_motor_s *motor, float max_speed);
 /**
- * @brief 设置电机预期角度-角度值
+ * @brief 设置电机预期角度
  */
-extern void rflMotorSetDegAngle(rfl_motor_s *motor, float degree_angle);
-/**
- * @brief 设置电机预期角度-弧度制
- */
-extern void rflMotorSetRadAngle(rfl_motor_s *motor, float radian_angle);
+extern void rflMotorSetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float angle);
 /**
  * @brief 设置电机角度范围-角度值
  */
-extern void rflMotorSetDegAngleLimit(rfl_motor_s *motor, float max_degree_angle, float min_degree_angle);
-/**
- * @brief 设置电机角度范围-弧度制
- */
-extern void rflMotorSetRadAngleLimit(rfl_motor_s *motor, float max_radian_angle, float min_radian_angle);
+extern void rflMotorSetDegAngleLimit(rfl_motor_s *motor, rfl_angle_format_e angle_format, float max_angle,
+                                     float min_angle);
 
 /**
  * @brief 获取电机当前模式

@@ -52,7 +52,7 @@ typedef struct UnitreeMotor
 extern void unitree_motor_init(unitree_motor_s *unitree_motor);
 extern void unitree_motor_update_status(unitree_motor_s *unitree_motor);
 extern void unitree_motor_control(unitree_motor_s *unitree_motor);
-extern void unitree_motor_reset_angle(unitree_motor_s *unitree_motor);
+extern void unitree_motor_reset_angle(unitree_motor_s *unitree_motor, float rad_angle);
 
 extern void unitree_uart_init(void);
 extern const unitree_motor_feedback_s *unitree_motor_get_feedback_pointer(uint16_t unitree_motor_id);

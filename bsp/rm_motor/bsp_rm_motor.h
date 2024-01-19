@@ -87,7 +87,7 @@ typedef struct RmMotor
 
     /* 状态量 */
 
-    uint16_t ecd_angle_offset;
+    int16_t ecd_angle_offset;
     uint16_t last_ecd;
     int16_t rotor_turns;
     int16_t max_rotor_turns;
@@ -104,7 +104,7 @@ extern void rm_motor_init(rm_motor_s *rm_motor);
 
 extern void rm_motor_update_status(rm_motor_s *rm_motor, uint8_t control_mode, uint8_t angle_format);
 
-extern void rm_motor_reset_angle(rm_motor_s *rm_motor);
+extern void rm_motor_reset_angle(rm_motor_s *rm_motor, float deg_angle);
 
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 

@@ -74,12 +74,17 @@ void rm_motor_update_status(rm_motor_s *rm_motor, uint8_t control_mode, uint8_t 
     rm_motor->torque = 0.0f;
 }
 
-void rm_motor_reset_angle(rm_motor_s *rm_motor)
+void rm_motor_reset_angle(rm_motor_s *rm_motor, float deg_angle)
 {
-    rm_motor->last_ecd = rm_motor->feedback_.ecd;
-    rm_motor->ecd_angle_offset = rm_motor->feedback_.ecd;
-    rm_motor->rotor_turns = rm_motor->ecd_angle = 0;
-    rm_motor->deg_angle = 0.0f;
+    // 反向计算转子圈数和偏置 为了方便所以将偏置从无符号改为了有符号整形
+    int32_t ecd_angle = (int32_t)((double)deg_angle / (double)rm_motor->ecd_to_effector_angle_factor);
+    rm_motor->rotor_turns = ecd_angle / RM_MOTOR_ECD_RANGE;
+    rm_motor->ecd_angle_offset = rm_motor->feedback_.ecd - (ecd_angle - rm_motor->rotor_turns * RM_MOTOR_ECD_RANGE);
+
+    // 重新计算末端执行器角度 角度范围大约为 -10000°~10000°
+    rm_motor->ecd_angle =
+        rm_motor->rotor_turns * RM_MOTOR_ECD_RANGE + rm_motor->feedback_.ecd - rm_motor->ecd_angle_offset;
+    rm_motor->deg_angle = (float)rm_motor->ecd_angle * rm_motor->ecd_to_effector_angle_factor;
 }
 
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */

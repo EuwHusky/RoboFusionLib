@@ -1,7 +1,7 @@
 #ifndef _MA600_DRIVER_H__
 #define _MA600_DRIVER_H__
 
-#include "bsp_ma600_middlewar.h"
+#include "bsp_ma600_middleware.h"
 
 extern bool MA600_init(void); // MA600初始化
 

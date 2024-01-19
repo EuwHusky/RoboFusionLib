@@ -4,6 +4,8 @@
 
 #include "algo_ahrs_quaternionekf.h"
 
+#if AHRS_USE == USE_QEKF
+
 QEKF_INS_t QEKF_INS;
 
 const float IMU_QuaternionEKF_F[36] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
@@ -483,3 +485,5 @@ static float invSqrt(float x)
     y = y * (1.5f - (halfx * y * y));
     return y;
 }
+
+#endif

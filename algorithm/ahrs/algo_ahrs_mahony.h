@@ -13,6 +13,10 @@
 #ifndef _MahonyAHRS_H__
 #define _MahonyAHRS_H__
 
+#include "algo_ahrs_config.h"
+
+#if AHRS_USE == USE_MAHONY
+
 //---------------------------------------------------------------------------------------------------
 // Definitions
 
@@ -42,6 +46,8 @@ typedef struct AhrsData
 void MahonyAHRSupdate(ahrs_data_s_t *ahrs_data, float gx, float gy, float gz, float ax, float ay, float az, float mx,
                       float my, float mz);
 void MahonyAHRSupdateIMU(ahrs_data_s_t *ahrs_data, float gx, float gy, float gz, float ax, float ay, float az);
+
+#endif
 
 #endif
 //=====================================================================================================

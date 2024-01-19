@@ -24,16 +24,14 @@ typedef struct RflMotor
     rfl_motor_type_e type;
     rfl_motor_controller_type_e controller_type;
     rfl_motor_control_mode_e mode_;
-    float control_period_factor; // 控制周期系数（由于控制周期不确定和PID控制的滞后性故仅以系数提供） 量纲 时间
 
     rfl_motor_angle_format_e angle_format; // 角度格式
+    rfl_angle_s max_angle_;                // 最大控制角度 逆时针为正
+    rfl_angle_s min_angle_;                // 最小控制角度 逆时针为正
 
-    // float effector_transmission_ratio; // 电机末端执行器转一圈时电机转子转过的圈数
+    float control_period_factor; // 控制周期系数（由于控制周期不确定和PID控制的滞后性故仅以系数提供） 量纲 时间
 
     bool is_reversed; // 是否反转 用于适应电机安装极性
-
-    rfl_angle_s max_angle_; // 最大控制角度 逆时针为正
-    rfl_angle_s min_angle_; // 最小控制角度 逆时针为正
 
     /* 控制量 */
 
@@ -62,7 +60,7 @@ typedef struct RflMotor
     void *driver;
 
     /* 错误码 */
-    uint8_t error_code;
+    uint32_t error_code;
 
 } rfl_motor_s;
 
@@ -90,17 +88,9 @@ extern void rflMotorUpdateControl(rfl_motor_s *motor);
 extern void rflMotorExecuteControl(rfl_motor_s *motor);
 
 /**
- * @brief 获取电机当前速度
+ * @brief 重置电机零位，将当前位置设为零位
  */
-extern float rflMotorGetSpeed(rfl_motor_s *motor);
-/**
- * @brief 获取电机当前角度
- */
-extern rfl_angle_s *rflMotorGetAngle(rfl_motor_s *motor);
-/**
- * @brief 获取电机当前输出
- */
-extern float rflMotorGetOutput(rfl_motor_s *motor);
+extern void rflMotorResetAngle(rfl_motor_s *motor);
 
 /**
  * @brief 设置电机控制模式
@@ -132,8 +122,20 @@ extern void rflMotorSetDegAngleLimit(rfl_motor_s *motor, float max_degree_angle,
 extern void rflMotorSetRadAngleLimit(rfl_motor_s *motor, float max_radian_angle, float min_radian_angle);
 
 /**
- * @brief 重置电机零位，将当前位置设为零位
+ * @brief 获取电机当前模式
  */
-extern void rflMotorResetAngle(rfl_motor_s *motor);
+extern rfl_motor_control_mode_e rflMotorGetMode(rfl_motor_s *motor);
+/**
+ * @brief 获取电机当前速度
+ */
+extern float rflMotorGetSpeed(rfl_motor_s *motor);
+/**
+ * @brief 获取电机当前角度
+ */
+extern rfl_angle_s *rflMotorGetAngle(rfl_motor_s *motor);
+/**
+ * @brief 获取电机当前输出
+ */
+extern float rflMotorGetOutput(rfl_motor_s *motor);
 
 #endif /* _DEV_MOTOR__ */

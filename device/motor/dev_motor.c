@@ -20,9 +20,11 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
     motor_config->controller_type = controller;
     motor_config->mode = RFL_MOTOR_CONTROL_MODE_NO_FORCE;
 
-    motor_config->control_period_factor = RFL_MOTOR_DEFAULT_CONTROL_PERIOD_FACTOR;
-
     motor_config->angle_format = RFL_MOTOR_ANGLE_FORMAT_CIRCLED;
+    rflAngleUpdate(&motor_config->max_angle, RFL_ANGLE_FORMAT_DEGREE, RFL_MOTOR_DEFAULT_ANGLE_RANGE);
+    rflAngleUpdate(&motor_config->min_angle, RFL_ANGLE_FORMAT_DEGREE, -RFL_MOTOR_DEFAULT_ANGLE_RANGE);
+
+    motor_config->control_period_factor = RFL_MOTOR_DEFAULT_CONTROL_PERIOD_FACTOR;
 
     switch (motor_config->type)
     {
@@ -51,9 +53,6 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
     default:
         break;
     }
-
-    rflAngleUpdate(&motor_config->max_angle, RFL_ANGLE_FORMAT_DEGREE, RFL_MOTOR_DEFAULT_ANGLE_RANGE);
-    rflAngleUpdate(&motor_config->min_angle, RFL_ANGLE_FORMAT_DEGREE, -RFL_MOTOR_DEFAULT_ANGLE_RANGE);
 
     /* 控制量 */
 
@@ -161,24 +160,20 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
     /* 基础参数 */
 
     motor->type = motor_config->type;
-
     motor->controller_type = motor_config->controller_type;
     motor->mode_ = motor_config->mode;
-
-    motor->control_period_factor = motor_config->control_period_factor;
 
     motor->angle_format = motor_config->angle_format;
     if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_ANGLE)
         motor->angle_format = RFL_MOTOR_ANGLE_FORMAT_CIRCLED;
     else if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_DIRECTION)
         motor->angle_format = RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE;
-
-    // motor->effector_transmission_ratio = motor_config->effector_transmission_ratio;
-
-    motor->is_reversed = motor_config->is_reversed;
-
     rflAngleUpdate(&motor->max_angle_, RFL_ANGLE_FORMAT_DEGREE, motor_config->max_angle.deg);
     rflAngleUpdate(&motor->min_angle_, RFL_ANGLE_FORMAT_DEGREE, motor_config->min_angle.deg);
+
+    motor->control_period_factor = motor_config->control_period_factor;
+
+    motor->is_reversed = motor_config->is_reversed;
 
     /* 控制量 */
 
@@ -334,7 +329,6 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
  */
 void rflMotorUpdateControl(rfl_motor_s *motor)
 {
-
     switch (motor->mode_)
     {
     case RFL_MOTOR_CONTROL_MODE_NO_FORCE:
@@ -370,6 +364,13 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
 {
     switch (motor->type)
     {
+#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+    case RFL_MOTOR_RM_M2006:
+    case RFL_MOTOR_RM_M3508:
+    case RFL_MOTOR_RM_GM6020:
+        break;
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
     case RFL_MOTOR_UNITREE_GO_M8010_6:
 
@@ -384,25 +385,37 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
 }
 
 /**
- * @brief 获取电机当前速度
+ * @brief 重置电机零位，将当前位置设为零位
  */
-float rflMotorGetSpeed(rfl_motor_s *motor)
+void rflMotorResetAngle(rfl_motor_s *motor)
 {
-    return motor->speed_;
-}
-/**
- * @brief 获取电机当前角度
- */
-rfl_angle_s *rflMotorGetAngle(rfl_motor_s *motor)
-{
-    return &motor->angle_;
-}
-/**
- * @brief 获取电机当前输出
- */
-float rflMotorGetOutput(rfl_motor_s *motor)
-{
-    return motor->control_output_;
+    switch (motor->type)
+    {
+#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+    case RFL_MOTOR_RM_M2006:
+    case RFL_MOTOR_RM_M3508:
+    case RFL_MOTOR_RM_GM6020:
+        rm_motor_reset_angle((rm_motor_s *)(motor->driver));
+        break;
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+    case RFL_MOTOR_UNITREE_GO_M8010_6:
+        unitree_motor_reset_angle((unitree_motor_s *)(motor->driver));
+        break;
+#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+    default:
+        break;
+    }
+
+    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    {
+        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
+        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
+    }
 }
 
 /**
@@ -415,12 +428,18 @@ void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode)
         if (mode == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
         {
             motor->mode_ = mode;
-
             PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
             PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
-            motor->control_output_ = motor->set_speed_ = 0.0f;
+            motor->control_output_ = motor->set_speed_ = motor->max_speed_ = 0.0f;
             rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
             rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
+        }
+
+        if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE && mode == RFL_MOTOR_CONTROL_MODE_SPEED)
+        {
+            motor->mode_ = mode;
+            rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+            rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
         }
 
         if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE && mode == RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE)
@@ -430,15 +449,16 @@ void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode)
         else if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE && mode == RFL_MOTOR_CONTROL_MODE_ANGLE)
         {
             motor->mode_ = mode;
-
             rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+        }
+        else if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_ANGLE && mode == RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE)
+        {
+            motor->mode_ = mode;
         }
 
         if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE && mode == RFL_MOTOR_CONTROL_MODE_DIRECTION)
         {
             motor->mode_ = mode;
-
-            rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
         }
 
         if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_ANGLE)
@@ -451,7 +471,6 @@ void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode)
         if (mode == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
         {
             motor->mode_ = mode;
-
             rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
             rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
         }
@@ -463,8 +482,11 @@ void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode)
         else if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE && mode == RFL_MOTOR_CONTROL_MODE_ANGLE)
         {
             motor->mode_ = mode;
-
             rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+        }
+        else if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_ANGLE && mode == RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE)
+        {
+            motor->mode_ = mode;
         }
     }
 }
@@ -520,35 +542,30 @@ void rflMotorSetRadAngleLimit(rfl_motor_s *motor, float max_radian_angle, float 
 }
 
 /**
- * @brief 重置电机零位，将当前位置设为零位
+ * @brief 获取电机当前模式
  */
-void rflMotorResetAngle(rfl_motor_s *motor)
+rfl_motor_control_mode_e rflMotorGetMode(rfl_motor_s *motor)
 {
-    switch (motor->type)
-    {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    case RFL_MOTOR_RM_M2006:
-    case RFL_MOTOR_RM_M3508:
-    case RFL_MOTOR_RM_GM6020:
-        rm_motor_reset_angle((rm_motor_s *)(motor->driver));
-        break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
-
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
-    case RFL_MOTOR_UNITREE_GO_M8010_6:
-        unitree_motor_reset_angle((unitree_motor_s *)(motor->driver));
-        break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
-
-    default:
-        break;
-    }
-
-    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
-
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
-    {
-        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
-        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
-    }
+    return motor->mode_;
+}
+/**
+ * @brief 获取电机当前速度
+ */
+float rflMotorGetSpeed(rfl_motor_s *motor)
+{
+    return motor->speed_;
+}
+/**
+ * @brief 获取电机当前角度
+ */
+rfl_angle_s *rflMotorGetAngle(rfl_motor_s *motor)
+{
+    return &motor->angle_;
+}
+/**
+ * @brief 获取电机当前输出
+ */
+float rflMotorGetOutput(rfl_motor_s *motor)
+{
+    return motor->control_output_;
 }

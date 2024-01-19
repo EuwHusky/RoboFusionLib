@@ -4,20 +4,22 @@
 
 void rfl_motor_no_force_control(rfl_motor_s *motor)
 {
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_NONE)
-        return;
-    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
     {
-        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
-        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
-        motor->control_output_ = motor->set_speed_ = 0.0f;
+        motor->control_output_ = motor->set_speed_ = motor->max_speed_ = 0.0f;
         rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
         rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
+
+        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
+        PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
     }
     else if (motor->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
     {
+        motor->control_output_ = motor->set_speed_ = motor->max_speed_ = 0.0f;
         rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
         rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
+
+        ((unitree_motor_s *)(motor->driver))->set_shaft_angle = motor->set_angle_.rad;
 
         ((unitree_motor_s *)(motor->driver))->k_a = 0.0f;
         ((unitree_motor_s *)(motor->driver))->k_s = 0.0f;
@@ -28,10 +30,11 @@ void rfl_motor_no_force_control(rfl_motor_s *motor)
 
 void rfl_motor_speed_control(rfl_motor_s *motor)
 {
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_NONE)
-        return;
-    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
     {
+        motor->max_speed_ = 0.0f;
+        rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+
         PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
         rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
         rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
@@ -40,21 +43,15 @@ void rfl_motor_speed_control(rfl_motor_s *motor)
         motor->control_output_ =
             PID_calc(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid, motor->speed_, motor->set_speed_);
     }
-    // else if (motor->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
-    // {
-    //     ((unitree_motor_s *)(motor->driver))->k_a = 0.0f;
-    //     ((unitree_motor_s *)(motor->driver))->k_s = 0.0f;
-
-    //     ((unitree_motor_s *)(motor->driver))->set_mode = 0;
-    // }
 }
 
 void rfl_motor_angle_control(rfl_motor_s *motor)
 {
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_NONE)
-        return;
-    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
     {
+        motor->max_speed_ = 0.0f;
+        rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+
         /* 角度限幅 */
         if (motor->set_angle_.deg > motor->max_angle_.deg)
             rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
@@ -71,15 +68,14 @@ void rfl_motor_angle_control(rfl_motor_s *motor)
     }
     else if (motor->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
     {
+        motor->max_speed_ = 0.0f;
+
         /* 角度限幅 */
         if (motor->set_angle_.deg > motor->max_angle_.deg)
             rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
         else if (motor->set_angle_.deg < motor->min_angle_.deg)
             rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->min_angle_.deg);
 
-        // ((unitree_motor_s *)(motor->driver))->set_angle = motor->set_angle_.rad * motor->effector_transmission_ratio
-        // +
-        //                                                   ((unitree_motor_s *)(motor->driver))->angle_offset;
         ((unitree_motor_s *)(motor->driver))->set_shaft_angle = motor->set_angle_.rad;
 
         ((unitree_motor_s *)(motor->driver))->k_a = ((rfl_motor_unitree_controller_s *)(motor->controller))->k_angle;
@@ -91,10 +87,11 @@ void rfl_motor_angle_control(rfl_motor_s *motor)
 
 void rfl_motor_direction_control(rfl_motor_s *motor)
 {
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_NONE)
-        return;
-    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
     {
+        motor->max_speed_ = 0.0f;
+        rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+
         /* 角度限幅 */
         rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE,
                        rflFloatLoopConstrain(motor->set_angle_.deg, -DEG_PI, DEG_PI));
@@ -107,20 +104,11 @@ void rfl_motor_direction_control(rfl_motor_s *motor)
         motor->control_output_ =
             PID_calc(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid, motor->speed_, motor->set_speed_);
     }
-    // else if (motor->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
-    // {
-    //     ((unitree_motor_s *)(motor->driver))->k_a = 0.0f;
-    //     ((unitree_motor_s *)(motor->driver))->k_s = 0.0f;
-
-    //     ((unitree_motor_s *)(motor->driver))->set_mode = 0;
-    // }
 }
 
 void rfl_motor_speed_angle_control(rfl_motor_s *motor)
 {
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_NONE)
-        return;
-    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
+    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
     {
         /* 角度限幅 */
         if (motor->set_angle_.deg > motor->max_angle_.deg)

@@ -24,6 +24,8 @@
 
 #include "bsp_dr16.h"
 
+#if RFL_DEV_REMOTE_CONTROLL_DR16
+
 #define SBUS_RX_BUF_NUM 36u
 
 #define RC_FRAME_LENGTH 18u
@@ -87,5 +89,7 @@ extern uint8_t RC_data_is_error(void);
 extern void slove_RC_lost(void);
 extern void slove_data_error(void);
 // extern void sbus_to_usart1(uint8_t *sbus);
+
+#endif
 
 #endif /* _APP_REMOTE_CONTROL_H__ */

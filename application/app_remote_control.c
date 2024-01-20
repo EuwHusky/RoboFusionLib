@@ -22,6 +22,8 @@
 
 #include "app_remote_control.h"
 
+#if RFL_DEV_REMOTE_CONTROLL_DR16
+
 #include "main.h"
 
 #include "drv_usart.h"
@@ -297,3 +299,5 @@ static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl)
 //     }
 //     usart1_tx_dma_enable(usart_tx_buf, 20);
 // }
+
+#endif

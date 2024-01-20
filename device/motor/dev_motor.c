@@ -115,16 +115,15 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
             break;
         }
     }
+#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
     else if (motor_config->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
     {
         switch (motor_config->type)
         {
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
         case RFL_MOTOR_UNITREE_GO_M8010_6:
             motor_config->unitree_k_a = RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE;
             motor_config->unitree_k_s = RFL_MOTOR_UNITREE_GO_M8010_6_K_SPEED;
             break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
         default:
             motor_config->unitree_k_a = RFL_MOTOR_UNITREE_DEFAULT_K_ANGLE;
@@ -132,6 +131,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
             break;
         }
     }
+#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
     /* 状态量 */
 
@@ -330,33 +330,58 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
  */
 void rflMotorUpdateControl(rfl_motor_s *motor)
 {
-    switch (motor->mode_)
+    switch (motor->controller_type)
     {
-    case RFL_MOTOR_CONTROL_MODE_NO_FORCE:
-        rfl_motor_no_force_control(motor);
+    case RFL_MOTOR_CONTROLLER_PID:
+        switch (motor->mode_)
+        {
+        case RFL_MOTOR_CONTROL_MODE_NO_FORCE:
+            rfl_motor_pid_no_force_control(motor);
+            break;
+        case RFL_MOTOR_CONTROL_MODE_SPEED:
+            rfl_motor_pid_speed_control(motor);
+            break;
+        case RFL_MOTOR_CONTROL_MODE_ANGLE:
+            rfl_motor_pid_angle_control(motor);
+            break;
+        case RFL_MOTOR_CONTROL_MODE_DIRECTION:
+            rfl_motor_pid_direction_control(motor);
+            break;
+        case RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE:
+            rfl_motor_pid_speed_angle_control(motor);
+            break;
+
+        default:
+            break;
+        }
+        motor->control_output_ *= (motor->is_reversed ? -1.0f : 1.0f);
         break;
-    case RFL_MOTOR_CONTROL_MODE_SPEED:
-        rfl_motor_speed_control(motor);
+
+#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+    case RFL_MOTOR_CONTROLLER_UNITREE:
+        switch (motor->mode_)
+        {
+        case RFL_MOTOR_CONTROL_MODE_NO_FORCE:
+            rfl_motor_unitree_no_force_control(motor);
+            break;
+        case RFL_MOTOR_CONTROL_MODE_ANGLE:
+            rfl_motor_unitree_angle_control(motor);
+            break;
+        case RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE:
+            rfl_motor_unitree_speed_angle_control(motor);
+            break;
+
+        default:
+            break;
+        }
+        ((unitree_motor_s *)(motor->driver))->set_shaft_angle *= (motor->is_reversed ? -1.0f : 1.0f);
         break;
-    case RFL_MOTOR_CONTROL_MODE_ANGLE:
-        rfl_motor_angle_control(motor);
-        break;
-    case RFL_MOTOR_CONTROL_MODE_DIRECTION:
-        rfl_motor_direction_control(motor);
-        break;
-    case RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE:
-        rfl_motor_speed_angle_control(motor);
-        break;
+#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
     default:
+        motor->control_output_ *= (motor->is_reversed ? -1.0f : 1.0f);
         break;
     }
-
-    // 输入输出需考虑反转
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
-        ((unitree_motor_s *)(motor->driver))->set_shaft_angle *= (motor->is_reversed ? -1.0f : 1.0f);
-    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
-        motor->control_output_ *= (motor->is_reversed ? -1.0f : 1.0f);
 }
 
 /**

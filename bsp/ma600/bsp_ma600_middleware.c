@@ -1,5 +1,7 @@
 #include "bsp_ma600_middleware.h"
 
+#if RFL_DEV_ENCODER_MA600
+
 #define MA600_SPI HPM_SPI1 // SPI序号
 
 // 定义片选引脚port和pin
@@ -138,3 +140,5 @@ bool MA600_read_write_byte(uint8_t *txdata, uint8_t *rxdata, uint8_t txdata_len,
 
     return true;
 }
+
+#endif

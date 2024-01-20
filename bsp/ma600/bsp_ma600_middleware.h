@@ -6,6 +6,8 @@
 
 #include "rfl_config.h"
 
+#if RFL_DEV_ENCODER_MA600
+
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
 #include "board.h"
 #include "hpm_gpio_drv.h"
@@ -34,5 +36,7 @@ extern void MA600_ACCEL_NS_H(void);
 #endif
 
 extern bool MA600_read_write_byte(uint8_t *txdata, uint8_t *rxdata, uint8_t txdata_len, uint8_t rxdata_len);
+
+#endif
 
 #endif /* _BSP_MA600_MIDDLEWARE_H__ */

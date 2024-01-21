@@ -217,18 +217,12 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         memset(motor->driver, 0, sizeof(rm_motor_s));
 
         ((rm_motor_s *)(motor->driver))->effector_transmission_ratio = motor_config->effector_transmission_ratio;
-        ((rm_motor_s *)(motor->driver))->ecd_to_effector_angle_factor =
-            RM_MOTOR_ECD_TO_EFFECTOR_ANGLE_FACTOR / motor_config->effector_transmission_ratio;
-        ((rm_motor_s *)(motor->driver))->rpm_to_effector_speed_factor =
-            RM_MOTOR_RPM_TO_EFFECTOR_SPEED_FACTOR / motor_config->effector_transmission_ratio;
-        // ((rm_motor_s *)(motor->driver))->current_to_torque_factor = ;
-
-        ((rm_motor_s *)(motor->driver))->max_rotor_turns =
-            (int16_t)(RM_MOTOR_ROTOR_TURNS_RANGE_PARAM / ((rm_motor_s *)(motor->driver))->ecd_to_effector_angle_factor -
-                      2);
-        ((rm_motor_s *)(motor->driver))->min_rotor_turns = -(
-            int16_t)(RM_MOTOR_ROTOR_TURNS_RANGE_PARAM / ((rm_motor_s *)(motor->driver))->ecd_to_effector_angle_factor -
-                     1);
+        if (motor_config->type == RFL_MOTOR_RM_M2006)
+            ((rm_motor_s *)(motor->driver))->torque_factor = RM_M2006_TORQUE_FACTOR;
+        if (motor_config->type == RFL_MOTOR_RM_M3508)
+            ((rm_motor_s *)(motor->driver))->torque_factor = RM_M3508_TORQUE_FACTOR;
+        else
+            ((rm_motor_s *)(motor->driver))->torque_factor = 0.0f;
 
         ((rm_motor_s *)(motor->driver))->can_rx_data =
             rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->can_id);
@@ -569,6 +563,30 @@ rfl_motor_control_mode_e rflMotorGetMode(rfl_motor_s *motor)
     return motor->mode_;
 }
 /**
+ * @brief 获取电机最大可达角度
+ */
+float rflMotorGetMaxAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
+{
+    if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+        return motor->max_angle_.deg;
+    else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+        return motor->max_angle_.rad;
+
+    return 0.0f;
+}
+/**
+ * @brief 获取电机最小可达角度
+ */
+float rflMotorGetMinAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
+{
+    if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+        return motor->min_angle_.deg;
+    else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+        return motor->min_angle_.rad;
+
+    return 0.0f;
+}
+/**
  * @brief 获取电机当前速度
  */
 float rflMotorGetSpeed(rfl_motor_s *motor)
@@ -578,9 +596,14 @@ float rflMotorGetSpeed(rfl_motor_s *motor)
 /**
  * @brief 获取电机当前角度
  */
-rfl_angle_s *rflMotorGetAngle(rfl_motor_s *motor)
+float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
 {
-    return &motor->angle_;
+    if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+        return motor->angle_.deg;
+    else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+        return motor->angle_.rad;
+
+    return 0.0f;
 }
 /**
  * @brief 获取电机当前输出

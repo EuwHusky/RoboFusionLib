@@ -119,13 +119,21 @@ extern void rflMotorSetDegAngleLimit(rfl_motor_s *motor, rfl_angle_format_e angl
  */
 extern rfl_motor_control_mode_e rflMotorGetMode(rfl_motor_s *motor);
 /**
+ * @brief 获取电机最大可达角度
+ */
+extern float rflMotorGetMaxAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
+/**
+ * @brief 获取电机最小可达角度
+ */
+extern float rflMotorGetMinAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
+/**
  * @brief 获取电机当前速度
  */
 extern float rflMotorGetSpeed(rfl_motor_s *motor);
 /**
  * @brief 获取电机当前角度
  */
-extern rfl_angle_s *rflMotorGetAngle(rfl_motor_s *motor);
+extern float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
 /**
  * @brief 获取电机当前输出
  */

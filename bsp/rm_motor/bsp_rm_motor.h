@@ -21,6 +21,16 @@
 #define RM_GM6020_REDUCTION_RATIO (1.0f)
 
 /**
+ * @brief RM M2006 力矩转换系数（不确定是否正确，可能量纲单位非N*M，但能凑合用）
+ */
+#define RM_M2006_TORQUE_FACTOR (0.001f)
+
+/**
+ * @brief RM M3508 力矩转换系数
+ */
+#define RM_M3508_TORQUE_FACTOR (0.0003662109375f)
+
+/**
  * @brief RM电机转子编码器码值范围
  */
 #define RM_MOTOR_ECD_RANGE (8191)
@@ -80,10 +90,10 @@ typedef struct RmMotor
     float effector_transmission_ratio; // 末端执行器转一圈时电机转子转过的圈数
     float ecd_to_effector_angle_factor;
     float rpm_to_effector_speed_factor;
-    float current_to_torque_factor;
+    float torque_factor;
 
     const uint8_t *can_rx_data;
-    rm_motor_feedback_s feedback_; // raw data
+    rm_motor_feedback_s feedback_;
 
     /* 状态量 */
 
@@ -92,7 +102,7 @@ typedef struct RmMotor
     int16_t rotor_turns;
     int16_t max_rotor_turns;
     int16_t min_rotor_turns;
-    int32_t ecd_angle; // ecd
+    int32_t ecd_angle;
 
     float torque;    // N*M 电机转矩
     float speed;     // rad/s 末端执行器转速

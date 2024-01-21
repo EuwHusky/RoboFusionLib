@@ -10,7 +10,7 @@
 
 /* 遥控器模块配置 ------------------------------ */
 
-#define RFL_DEV_REMOTE_CONTROLL_DR16 0 // 打算之后把遥控器做成抽象硬件模块，但目前仍为应用层模块
+#define RFL_DEV_REMOTE_CONTROLL_DR16 1 // 打算之后把遥控器做成抽象硬件模块，但目前仍为应用层模块
 
 /* 电机模块配置 ------------------------------ */
 
@@ -19,6 +19,6 @@
 
 /* 编码器模块配置 ------------------------------ */
 
-#define RFL_DEV_ENCODER_MA600 0
+#define RFL_DEV_ENCODER_MA600 1
 
 #endif /* _RFL_CONFIG_H__ */

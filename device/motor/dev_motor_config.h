@@ -62,17 +62,21 @@ typedef enum RflMotorAngleFormat
  */
 typedef struct RflMotorConfig
 {
+    /* 通用参数 */
+
     rfl_motor_type_e type;
     rfl_motor_controller_type_e controller_type;
     rfl_motor_control_mode_e mode;
     float control_period_factor;
     rfl_motor_angle_format_e angle_format;
+    rfl_angle_s max_angle;
+    rfl_angle_s min_angle;
     float effector_transmission_ratio;
     bool is_reversed;
 
     float max_speed;
-    rfl_angle_s max_angle;
-    rfl_angle_s min_angle;
+
+    /* 控制器参数 */
 
     float speed_pid_kp;
     float speed_pid_ki;
@@ -90,6 +94,8 @@ typedef struct RflMotorConfig
 
     const float *external_speed;
     const rfl_angle_s *external_angle;
+
+    /* 专有参数 */
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
     uint8_t can_ordinal;

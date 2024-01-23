@@ -1,7 +1,7 @@
 #include "math.h"
 #include "string.h"
 
-#include "algo_scara_arm_kinematics.h"
+#include "kine_scara_arm_solver.h"
 
 void rflPose6DToTransformMatrix(rfl_matrix_instance *trans_mat, const float pose_6d[6])
 {

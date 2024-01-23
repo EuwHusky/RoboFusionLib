@@ -1,8 +1,8 @@
 #include "stdlib.h"
 #include "string.h"
 
-#include "algo_scara_arm.h"
-#include "algo_scara_arm_kinematics.h"
+#include "kine_scara_arm.h"
+#include "kine_scara_arm_solver.h"
 
 void rflScaraArmGetDefaultConfig(rfl_scara_arm_config_s *config)
 {

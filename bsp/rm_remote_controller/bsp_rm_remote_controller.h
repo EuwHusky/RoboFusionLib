@@ -17,8 +17,8 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2016 DJI****************************
   */
-#ifndef _APP_REMOTE_CONTROL_H__
-#define _APP_REMOTE_CONTROL_H__
+#ifndef _BSP_RM_REMOTE_CONTROLLER_H__
+#define _BSP_RM_REMOTE_CONTROLLER_H__
 
 #include "stdint.h"
 
@@ -94,4 +94,4 @@ extern void slove_data_error(void);
 
 #endif
 
-#endif /* _APP_REMOTE_CONTROL_H__ */
+#endif /* _BSP_RM_REMOTE_CONTROLLER_H__ */

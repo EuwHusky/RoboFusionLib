@@ -1,32 +1,7 @@
-#ifndef _APP_SCARA_ARM_CONFIG_H__
-#define _APP_SCARA_ARM_CONFIG_H__
-
-#include "dev_motor.h"
+#ifndef _KINE_SCARA_ARM_CONFIG_H__
+#define _KINE_SCARA_ARM_CONFIG_H__
 
 #include "algo_angle.h"
-
-// typedef struct RflScaraArmJointConfig
-// {
-//     uint8_t motor_num;
-
-//     rfl_motor_type_e motor_type;
-//     rfl_motor_controller_type_e controller_type;
-//     bool is_reversed;
-
-//     float max_deg_angle;
-//     float min_deg_angle;
-
-//     const rfl_angle_s *external_angle;
-
-//     float angle_pid_param[5];
-//     float speed_pid_param[5];
-//     float unitree_k_a;
-//     float unitree_k_s;
-
-//     uint8_t can_ordinal;
-//     uint32_t can_id;
-//     uint16_t unitree_motor_id;
-// } rfl_scara_arm_joint_config_s;
 
 typedef struct RflScaraArmConfig
 {
@@ -111,43 +86,4 @@ typedef struct RflScaraArmConfig
 #define RFL_SCARA_ARM_DEFAULT_JOINT_6_MAX_VALUE (0.0f)
 #define RFL_SCARA_ARM_DEFAULT_JOINT_6_MIN_VALUE (0.0f)
 
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_SPEED_PID_KP (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_SPEED_PID_KI (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_SPEED_PID_KD (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_SPEED_PID_MAX_IOUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_SPEED_PID_MAX_OUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_ANGLE_PID_KP (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_ANGLE_PID_KI (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_ANGLE_PID_KD (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_ANGLE_PID_MAX_IOUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_1_RM_M3508_ANGLE_PID_MAX_OUT (0.0f)
-
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_2_UNITREE_GO_M8010_6_K_ANGLE (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_2_UNITREE_GO_M8010_6_K_SPEED (0.0f)
-
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_3_UNITREE_GO_M8010_6_K_ANGLE (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_3_UNITREE_GO_M8010_6_K_SPEED (0.0f)
-
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_SPEED_PID_KP (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_SPEED_PID_KI (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_SPEED_PID_KD (0.0f)
-// #define RRFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_SPEED_PID_MAX_IOUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_SPEED_PID_MAX_OUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_ANGLE_PID_KP (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_ANGLE_PID_KI (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_ANGLE_PID_KD (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_ANGLE_PID_MAX_IOUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_4_RM_M3508_ANGLE_PID_MAX_OUT (0.0f)
-
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_SPEED_PID_KP (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_SPEED_PID_KI (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_SPEED_PID_KD (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_SPEED_PID_MAX_IOUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_SPEED_PID_MAX_OUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_ANGLE_PID_KP (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_ANGLE_PID_KI (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_ANGLE_PID_KD (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_ANGLE_PID_MAX_IOUT (0.0f)
-// #define RFL_SCARA_ARM_DEFAULT_JOINT_56_RM_M2006_ANGLE_PID_MAX_OUT (0.0f)
-
-#endif /* _APP_SCARA_ARM_CONFIG_H__ */
+#endif /* _KINE_SCARA_ARM_CONFIG_H__ */

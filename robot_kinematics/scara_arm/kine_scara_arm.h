@@ -1,11 +1,9 @@
-#ifndef _APP_SCARA_ARM_H__
-#define _APP_SCARA_ARM_H__
+#ifndef _KINE_SCARA_ARM_H__
+#define _KINE_SCARA_ARM_H__
 
-#include "algo_scara_arm_config.h"
+#include "kine_scara_arm_config.h"
 
 #include "algo_matrix.h"
-
-#include "dev_motor.h"
 
 typedef struct RflScaraArm
 {
@@ -57,13 +55,10 @@ typedef struct RflScaraArm
      * [0:5]    J1-distance J2-angle J3-angle J4-angle J5-angle J6-angle
      */
     float set_joints_value[6];
-
-    /* 设备 */
-    rfl_motor_s *motors;
 } rfl_scara_arm_s;
 
 extern void rflScaraArmGetDefaultConfig(rfl_scara_arm_config_s *config);
 extern void rflScaraArmInit(rfl_scara_arm_s *scara_arm, rfl_scara_arm_config_s *config);
 extern void rflScaraArmUpdatePose6d(rfl_scara_arm_s *scara_arm, const float joints_value[6]);
 
-#endif /* _APP_SCARA_ARM_H__ */
+#endif /* _KINE_SCARA_ARM_H__ */

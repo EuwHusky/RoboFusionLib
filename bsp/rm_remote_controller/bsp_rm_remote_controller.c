@@ -20,7 +20,7 @@
 
 #include "string.h"
 
-#include "app_remote_control.h"
+#include "bsp_rm_remote_controller.h"
 
 #if RFL_DEV_REMOTE_CONTROLL_DR16
 

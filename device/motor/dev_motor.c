@@ -563,6 +563,13 @@ rfl_motor_control_mode_e rflMotorGetMode(rfl_motor_s *motor)
     return motor->mode_;
 }
 /**
+ * @brief 获取电机当前转矩
+ */
+float rflMotorGetTorque(rfl_motor_s *motor)
+{
+    return motor->torque_;
+}
+/**
  * @brief 获取电机最大可达角度
  */
 float rflMotorGetMaxAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)

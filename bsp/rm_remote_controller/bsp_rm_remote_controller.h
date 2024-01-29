@@ -26,8 +26,6 @@
 
 #if RFL_DEV_REMOTE_CONTROLL_DR16
 
-#define rc_deadband_limit(input, dealine) (((input) > (dealine) || (input) < -(dealine)) ? input : 0)
-
 #define SBUS_RX_BUF_NUM 36u
 
 #define RC_FRAME_LENGTH 18u

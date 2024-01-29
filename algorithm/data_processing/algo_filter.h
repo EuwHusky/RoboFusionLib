@@ -52,7 +52,7 @@ extern void rlfRampInit(ramp_function_source_t *ramp_source_type, float frame_pe
  * @param[in]      滤波参数
  * @retval         返回空
  */
-extern void rlfRampCalc(ramp_function_source_t *ramp_source_type, float input);
+extern float rlfRampCalc(ramp_function_source_t *ramp_source_type, float input);
 /**
  * @brief          一阶低通滤波初始化
  * @author         RM

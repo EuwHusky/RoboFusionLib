@@ -594,7 +594,7 @@ float rflMotorGetMinAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
     return 0.0f;
 }
 /**
- * @brief 获取电机当前速度
+ * @brief 获取电机当前速度 单位 rad * s^-1
  */
 float rflMotorGetSpeed(rfl_motor_s *motor)
 {

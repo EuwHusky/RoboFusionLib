@@ -26,8 +26,8 @@ typedef struct RflMotor
     rfl_motor_control_mode_e mode_;
 
     rfl_motor_angle_format_e angle_format; // 角度格式
-    rfl_angle_s max_angle_;                // 最大控制角度 逆时针为正
-    rfl_angle_s min_angle_;                // 最小控制角度 逆时针为正
+    rfl_angle_s max_angle_;                // 最大控制角度
+    rfl_angle_s min_angle_;                // 最小控制角度
 
     float control_period_factor; // 控制周期系数（由于控制周期不确定和PID控制的滞后性故仅以系数提供） 量纲 时间
 
@@ -38,18 +38,18 @@ typedef struct RflMotor
     float set_speed_; // 预期速度 单位 rad * s^-1
     float max_speed_; // 最大速度（仅作用于速度角度模式） 量纲 角度值/时间
 
-    rfl_angle_s set_angle_;  // 预期角度 逆时针为正
-    rfl_angle_s track_angle; // 规划跟踪角度 逆时针为正
+    rfl_angle_s set_angle_;  // 预期角度
+    rfl_angle_s track_angle; // 规划跟踪角度
 
     void *controller; // 电机控制器
 
-    float control_output_; // 输出控制量 逆时针为正 物理意义视用法而定
+    float control_output_; // 输出控制量 物理意义视用法而定
 
     /* 状态量 */
 
-    float torque_; // 电机转矩 逆时针为正 单位 N * M
+    float torque_; // 电机转矩 单位 N * M
 
-    float speed_; // 末端执行器转速 逆时针为正 单位 rad * s^-1
+    float speed_; // 末端执行器转速 单位 rad * s^-1
 
     rfl_angle_s angle_; // 末端执行器角度 逆时针为正
 
@@ -131,7 +131,7 @@ extern float rflMotorGetMaxAngle(rfl_motor_s *motor, rfl_angle_format_e angle_fo
  */
 extern float rflMotorGetMinAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
 /**
- * @brief 获取电机当前速度
+ * @brief 获取电机当前速度 单位 rad * s^-1
  */
 extern float rflMotorGetSpeed(rfl_motor_s *motor);
 /**

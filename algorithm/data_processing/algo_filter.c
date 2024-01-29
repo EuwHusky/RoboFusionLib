@@ -1,6 +1,9 @@
+#include "math.h"
 #include "stdlib.h"
 
 #include "algo_filter.h"
+
+#include "algo_data_limiting.h"
 
 /**
  * @brief          斜波函数初始化
@@ -28,19 +31,25 @@ void rlfRampInit(ramp_function_source_t *ramp_source_type, float frame_period, f
  * @param[in]      滤波参数
  * @retval         返回空
  */
-void rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
+float rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
 {
     ramp_source_type->input = input;
-    ramp_source_type->out += ramp_source_type->input * ramp_source_type->frame_period;
-    if (ramp_source_type->out > ramp_source_type->max_value)
+    if (ramp_source_type->input > ramp_source_type->max_value)
     {
-        ramp_source_type->out = ramp_source_type->max_value;
+        ramp_source_type->input = ramp_source_type->max_value;
     }
-    else if (ramp_source_type->out < ramp_source_type->min_value)
+    else if (ramp_source_type->input < ramp_source_type->min_value)
     {
-        ramp_source_type->out = ramp_source_type->min_value;
+        ramp_source_type->input = ramp_source_type->min_value;
     }
+
+    ramp_source_type->out += (ramp_source_type->input - ramp_source_type->out) * ramp_source_type->frame_period;
+
+    ramp_source_type->out = rflDeadZoneZero(ramp_source_type->out, 0.01f);
+
+    return ramp_source_type->out;
 }
+
 /**
  * @brief          一阶低通滤波初始化
  * @author         RM

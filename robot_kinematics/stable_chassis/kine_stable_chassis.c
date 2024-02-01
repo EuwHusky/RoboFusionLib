@@ -336,22 +336,22 @@ static void chassis_update_status(rfl_chassis_s *chassis)
                          sinf(chassis->motor_feedback[6]) * chassis->motor_feedback[2] +
                          sinf(chassis->motor_feedback[7]) * chassis->motor_feedback[3]) /
                         4.0f;
-        body_frame_wz = (cosf(rflFloatLoopConstrain(chassis->motor_feedback[4] -
-                                                        2.3561944901923449288469825374596f, // 自旋系偏角为+135度
-                                                    -RAD_PI, RAD_PI) *
-                              chassis->motor_feedback[0]) +
-                         cosf(rflFloatLoopConstrain(chassis->motor_feedback[5] +
-                                                        2.3561944901923449288469825374596f, // 自旋系偏角为-135度
-                                                    -RAD_PI, RAD_PI) *
-                              chassis->motor_feedback[1]) +
-                         cosf(rflFloatLoopConstrain(chassis->motor_feedback[6] +
-                                                        0.78539816339744830961566084581988f, // 自旋系偏角为-45度
-                                                    -RAD_PI, RAD_PI) *
-                              chassis->motor_feedback[2]) +
-                         cosf(rflFloatLoopConstrain(chassis->motor_feedback[7] -
-                                                        0.78539816339744830961566084581988f, // 自旋系偏角为+45度
-                                                    -RAD_PI, RAD_PI) *
-                              chassis->motor_feedback[3])) /
+        body_frame_wz = ((cosf(rflFloatLoopConstrain(chassis->motor_feedback[4] -
+                                                         2.3561944901923449288469825374596f, // 自旋系偏角为+135度
+                                                     -RAD_PI, RAD_PI)) *
+                          chassis->motor_feedback[0]) +
+                         (cosf(rflFloatLoopConstrain(chassis->motor_feedback[5] +
+                                                         2.3561944901923449288469825374596f, // 自旋系偏角为-135度
+                                                     -RAD_PI, RAD_PI)) *
+                          chassis->motor_feedback[1]) +
+                         (cosf(rflFloatLoopConstrain(chassis->motor_feedback[6] +
+                                                         0.78539816339744830961566084581988f, // 自旋系偏角为-45度
+                                                     -RAD_PI, RAD_PI)) *
+                          chassis->motor_feedback[2]) +
+                         (cosf(rflFloatLoopConstrain(chassis->motor_feedback[7] -
+                                                         0.78539816339744830961566084581988f, // 自旋系偏角为+45度
+                                                     -RAD_PI, RAD_PI)) *
+                          chassis->motor_feedback[3])) /
                         4.0f;
     }
 

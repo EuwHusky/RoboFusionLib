@@ -1,5 +1,6 @@
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 
 #include "algo_filter.h"
 
@@ -140,9 +141,6 @@ float rlfSlidingWindowFilterCalc(sliding_window_filter_s_t *sliding_window_filte
         return sliding_window_filter->output;
     }
 
-    // 创建本次运算所需临时数据空间
-    float *data_flow = (float *)malloc(sliding_window_filter->data_depth * sizeof(float));
-
     // 原始数据滑动一位
     for (uint8_t i = 0; i < sliding_window_filter->data_depth - 1; i++)
     {
@@ -151,17 +149,21 @@ float rlfSlidingWindowFilterCalc(sliding_window_filter_s_t *sliding_window_filte
     sliding_window_filter->data_flow[sliding_window_filter->data_depth - 1] = input;
 
     // 初始阶段滤波器数据未满，跳过本次计算
-    if (sliding_window_filter->data_flow[0] == 0.0f)
+    if (fabsf(sliding_window_filter->data_flow[0]) < 0.0001f)
     {
         sliding_window_filter->output = 0.0f;
         return sliding_window_filter->output;
     }
 
+    // 创建本次运算所需临时数据空间
+    float *data_flow = (float *)malloc(sliding_window_filter->data_depth * sizeof(float));
+
     // 复制原始数据到临时数据空间，以便在不改变原始数据顺序的情况下进行排序、计算均值等
-    for (uint8_t i = 0; i < sliding_window_filter->data_depth; i++)
-    {
-        data_flow[i] = sliding_window_filter->data_flow[i];
-    }
+    memcpy(data_flow, sliding_window_filter->data_flow, sliding_window_filter->data_depth * sizeof(float));
+    // for (uint8_t i = 0; i < sliding_window_filter->data_depth; i++)
+    // {
+    //     data_flow[i] = sliding_window_filter->data_flow[i];
+    // }
 
     // 冒泡排序
     for (uint8_t i = 0; i < (sliding_window_filter->data_depth - 1); i++)

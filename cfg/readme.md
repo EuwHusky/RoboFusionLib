@@ -1,3 +1,13 @@
+# 请在这个文件夹下添加配置文件
+
+## 文件名
+
+rfl_config.h
+
+## 文件内容
+
+```C
+
 #ifndef _RFL_CONFIG_H__
 #define _RFL_CONFIG_H__
 
@@ -23,3 +33,5 @@
 #define RFL_DEV_ENCODER_MA600 1
 
 #endif /* _RFL_CONFIG_H__ */
+
+```

@@ -1,4 +1,6 @@
+# 库文件
+/cfg/rfl_config.h
+
 # vscode 配置文件
 *.vscode
 
-# 其他

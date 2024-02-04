@@ -20,13 +20,15 @@
 
 #include "string.h"
 
-#include "app_remote_control.h"
+#include "bsp_rm_remote_controller.h"
+
+#if RFL_DEV_REMOTE_CONTROLL_DR16
 
 #include "main.h"
 
 #include "drv_usart.h"
 
-#include "detect_task.h"
+// #include "detect_task.h"
 
 // 遥控器出错数据上限
 #define RC_CHANNAL_ERROR_VALUE 700
@@ -182,8 +184,8 @@ void USART3_IRQHandler(void)
             {
                 sbus_to_rc(sbus_rx_buf[0], &rc_ctrl);
                 // 记录数据接收时间
-                detect_hook(RC_TOE);
-                sbus_to_usart1(sbus_rx_buf[0]);
+                // detect_hook(RC_TOE);
+                // sbus_to_usart1(sbus_rx_buf[0]);
             }
         }
         else
@@ -214,8 +216,8 @@ void USART3_IRQHandler(void)
                 // 处理遥控器数据
                 sbus_to_rc(sbus_rx_buf[1], &rc_ctrl);
                 // 记录数据接收时间
-                detect_hook(RC_TOE);
-                sbus_to_usart1(sbus_rx_buf[1]);
+                // detect_hook(RC_TOE);
+                // sbus_to_usart1(sbus_rx_buf[1]);
             }
         }
     }
@@ -275,25 +277,27 @@ static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl)
     rc_ctrl->rc.ch[4] -= RC_CH_VALUE_OFFSET;
 }
 
-/**
- * @brief          send sbus data by usart1, called in usart3_IRQHandle
- * @param[in]      sbus: sbus data, 18 bytes
- * @retval         none
- */
-/**
- * @brief          通过usart1发送sbus数据,在usart3_IRQHandle调用
- * @param[in]      sbus: sbus数据, 18字节
- * @retval         none
- */
-void sbus_to_usart1(uint8_t *sbus)
-{
-    static uint8_t usart_tx_buf[20];
-    static uint8_t i = 0;
-    usart_tx_buf[0] = 0xA6;
-    memcpy(usart_tx_buf + 1, sbus, 18);
-    for (i = 0, usart_tx_buf[19] = 0; i < 19; i++)
-    {
-        usart_tx_buf[19] += usart_tx_buf[i];
-    }
-    usart1_tx_dma_enable(usart_tx_buf, 20);
-}
+// /**
+//  * @brief          send sbus data by usart1, called in usart3_IRQHandle
+//  * @param[in]      sbus: sbus data, 18 bytes
+//  * @retval         none
+//  */
+// /**
+//  * @brief          通过usart1发送sbus数据,在usart3_IRQHandle调用
+//  * @param[in]      sbus: sbus数据, 18字节
+//  * @retval         none
+//  */
+// void sbus_to_usart1(uint8_t *sbus)
+// {
+//     static uint8_t usart_tx_buf[20];
+//     static uint8_t i = 0;
+//     usart_tx_buf[0] = 0xA6;
+//     memcpy(usart_tx_buf + 1, sbus, 18);
+//     for (i = 0, usart_tx_buf[19] = 0; i < 19; i++)
+//     {
+//         usart_tx_buf[19] += usart_tx_buf[i];
+//     }
+//     usart1_tx_dma_enable(usart_tx_buf, 20);
+// }
+
+#endif

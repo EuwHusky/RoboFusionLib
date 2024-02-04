@@ -1,6 +1,10 @@
+#include "math.h"
 #include "stdlib.h"
+#include "string.h"
 
 #include "algo_filter.h"
+
+#include "algo_data_limiting.h"
 
 /**
  * @brief          斜波函数初始化
@@ -11,9 +15,9 @@
  * @param[in]      最小值
  * @retval         返回空
  */
-void rlfRampInit(ramp_function_source_t *ramp_source_type, float frame_period, float max, float min)
+void rlfRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min)
 {
-    ramp_source_type->frame_period = frame_period;
+    ramp_source_type->p_factor = p_factor;
     ramp_source_type->max_value = max;
     ramp_source_type->min_value = min;
     ramp_source_type->input = 0.0f;
@@ -28,19 +32,25 @@ void rlfRampInit(ramp_function_source_t *ramp_source_type, float frame_period, f
  * @param[in]      滤波参数
  * @retval         返回空
  */
-void rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
+float rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
 {
     ramp_source_type->input = input;
-    ramp_source_type->out += ramp_source_type->input * ramp_source_type->frame_period;
-    if (ramp_source_type->out > ramp_source_type->max_value)
+    if (ramp_source_type->input > ramp_source_type->max_value)
     {
-        ramp_source_type->out = ramp_source_type->max_value;
+        ramp_source_type->input = ramp_source_type->max_value;
     }
-    else if (ramp_source_type->out < ramp_source_type->min_value)
+    else if (ramp_source_type->input < ramp_source_type->min_value)
     {
-        ramp_source_type->out = ramp_source_type->min_value;
+        ramp_source_type->input = ramp_source_type->min_value;
     }
+
+    ramp_source_type->out += (ramp_source_type->input - ramp_source_type->out) * ramp_source_type->p_factor;
+
+    ramp_source_type->out = rflDeadZoneZero(ramp_source_type->out, 0.00001f);
+
+    return ramp_source_type->out;
 }
+
 /**
  * @brief          一阶低通滤波初始化
  * @author         RM
@@ -131,9 +141,6 @@ float rlfSlidingWindowFilterCalc(sliding_window_filter_s_t *sliding_window_filte
         return sliding_window_filter->output;
     }
 
-    // 创建本次运算所需临时数据空间
-    float *data_flow = (float *)malloc(sliding_window_filter->data_depth * sizeof(float));
-
     // 原始数据滑动一位
     for (uint8_t i = 0; i < sliding_window_filter->data_depth - 1; i++)
     {
@@ -142,17 +149,21 @@ float rlfSlidingWindowFilterCalc(sliding_window_filter_s_t *sliding_window_filte
     sliding_window_filter->data_flow[sliding_window_filter->data_depth - 1] = input;
 
     // 初始阶段滤波器数据未满，跳过本次计算
-    if (sliding_window_filter->data_flow[0] == 0.0f)
+    if (fabsf(sliding_window_filter->data_flow[0]) < 0.0001f)
     {
         sliding_window_filter->output = 0.0f;
         return sliding_window_filter->output;
     }
 
+    // 创建本次运算所需临时数据空间
+    float *data_flow = (float *)malloc(sliding_window_filter->data_depth * sizeof(float));
+
     // 复制原始数据到临时数据空间，以便在不改变原始数据顺序的情况下进行排序、计算均值等
-    for (uint8_t i = 0; i < sliding_window_filter->data_depth; i++)
-    {
-        data_flow[i] = sliding_window_filter->data_flow[i];
-    }
+    memcpy(data_flow, sliding_window_filter->data_flow, sliding_window_filter->data_depth * sizeof(float));
+    // for (uint8_t i = 0; i < sliding_window_filter->data_depth; i++)
+    // {
+    //     data_flow[i] = sliding_window_filter->data_flow[i];
+    // }
 
     // 冒泡排序
     for (uint8_t i = 0; i < (sliding_window_filter->data_depth - 1); i++)

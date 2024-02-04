@@ -16,12 +16,5 @@ float rflJudgeFloatSign(float value)
 // 将0转为1，非0转为-1
 float rflConvertTfToSign(uint8_t value)
 {
-    if (value)
-    {
-        return -1.0f;
-    }
-    else
-    {
-        return 1.0f;
-    }
+    return value ? -1.0f : 1.0f;
 }

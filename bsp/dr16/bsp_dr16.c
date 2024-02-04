@@ -1,6 +1,8 @@
 #include "bsp_dr16.h"
 #include "main.h"
 
+#if RFL_DEV_REMOTE_CONTROLL_DR16
+
 extern UART_HandleTypeDef huart3;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 
@@ -54,3 +56,5 @@ void RC_restart(uint16_t dma_buf_num)
     __HAL_DMA_ENABLE(&hdma_usart3_rx);
     __HAL_UART_ENABLE(&huart3);
 }
+
+#endif

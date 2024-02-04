@@ -1,4 +1,6 @@
-#include "bsp_ma600_middlewar.h"
+#include "bsp_ma600_middleware.h"
+
+#if RFL_DEV_ENCODER_MA600
 
 #define MA600_SPI HPM_SPI1 // SPI序号
 
@@ -9,8 +11,8 @@ uint8_t group_of_cs_pins[NUM_OF_MA600] = {25};
 
 #elif (RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD)
 
-GPIO_TypeDef *group_of_cs_ports[4] = {CS_Magalpha1_Port, CS_Magalpha2_Port, CS_Magalpha3_Port, CS_Magalpha4_Port};
-uint16_t group_of_cs_pins[4] = {CS_Magalpha1_Pin, CS_Magalpha2_Pin, CS_Magalpha3_Pin, CS_Magalpha4_Pin};
+GPIO_TypeDef *group_of_cs_ports[4] = {CS_J2_GPIO_Port, CS_J3_GPIO_Port, CS_J4_GPIO_Port, CS_J6_GPIO_Port};
+uint16_t group_of_cs_pins[4] = {CS_J2_Pin, CS_J3_Pin, CS_J4_Pin, CS_J6_Pin};
 #endif
 
 // 初始化相关片选IO
@@ -138,3 +140,5 @@ bool MA600_read_write_byte(uint8_t *txdata, uint8_t *rxdata, uint8_t txdata_len,
 
     return true;
 }
+
+#endif

@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+#define rflDeadZoneZero(input, dealine) (((input) > (dealine) || (input) < -(dealine)) ? (input) : 0)
+
 /**
  * @brief 绝对限制
  */

@@ -1,5 +1,7 @@
 #include "bsp_ma600.h"
 
+#if RFL_DEV_ENCODER_MA600
+
 bool MA600_init(void)
 {
     MA600_GPIO_init();
@@ -250,4 +252,6 @@ uint8_t writeMagAlphaRegister(uint8_t address, uint8_t value)
     registerReadbackValue = rxData2[0];
     return registerReadbackValue;
 }
+#endif
+
 #endif

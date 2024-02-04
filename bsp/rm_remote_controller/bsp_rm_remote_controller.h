@@ -17,12 +17,14 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2016 DJI****************************
   */
-#ifndef _APP_REMOTE_CONTROL_H__
-#define _APP_REMOTE_CONTROL_H__
+#ifndef _BSP_RM_REMOTE_CONTROLLER_H__
+#define _BSP_RM_REMOTE_CONTROLLER_H__
 
 #include "stdint.h"
 
 #include "bsp_dr16.h"
+
+#if RFL_DEV_REMOTE_CONTROLL_DR16
 
 #define SBUS_RX_BUF_NUM 36u
 
@@ -86,6 +88,8 @@ extern const RC_ctrl_t *get_remote_control_point(void);
 extern uint8_t RC_data_is_error(void);
 extern void slove_RC_lost(void);
 extern void slove_data_error(void);
-extern void sbus_to_usart1(uint8_t *sbus);
+// extern void sbus_to_usart1(uint8_t *sbus);
 
-#endif /* _APP_REMOTE_CONTROL_H__ */
+#endif
+
+#endif /* _BSP_RM_REMOTE_CONTROLLER_H__ */

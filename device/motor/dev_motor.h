@@ -6,14 +6,6 @@
 
 #include "algo_angle.h"
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-#include "bsp_rm_motor.h"
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
-
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
-#include "bsp_unitree_motor.h"
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
-
 /**
  * @brief 电机
  */
@@ -24,6 +16,7 @@ typedef struct RflMotor
     rfl_motor_type_e type;
     rfl_motor_controller_type_e controller_type;
     rfl_motor_control_mode_e mode_;
+    rfl_motor_control_mode_e last_mode;
 
     rfl_motor_angle_format_e angle_format; // 角度格式
     rfl_angle_s max_angle_;                // 最大控制角度

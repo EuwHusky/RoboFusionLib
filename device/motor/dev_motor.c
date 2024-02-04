@@ -7,6 +7,8 @@
 
 #include "drv_can.h"
 
+#include "algo_data_limiting.h"
+
 /**
  * @brief 获取电机默认配置
  */
@@ -31,28 +33,26 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
     case RFL_MOTOR_RM_M2006:
         motor_config->effector_transmission_ratio = RM_M2006_REDUCTION_RATIO;
-        motor_config->is_reversed = false;
         break;
     case RFL_MOTOR_RM_M3508:
         motor_config->effector_transmission_ratio = RM_M3508_REDUCTION_RATIO;
-        motor_config->is_reversed = false;
         break;
     case RFL_MOTOR_RM_GM6020:
         motor_config->effector_transmission_ratio = RM_GM6020_REDUCTION_RATIO;
-        motor_config->is_reversed = false;
         break;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
     case RFL_MOTOR_UNITREE_GO_M8010_6:
         motor_config->effector_transmission_ratio = UNITREE_GO_M8010_6_REDUCTION_RATIO;
-        motor_config->is_reversed = false;
         break;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
     default:
         break;
     }
+
+    motor_config->is_reversed = false;
 
     /* 控制量 */
 
@@ -138,16 +138,34 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
     motor_config->external_speed = NULL;
     motor_config->external_angle = NULL;
 
-    /* 通信协议 */
+    /* 专有参数 */
 
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
-    motor_config->can_ordinal = 1;
-    motor_config->can_id = 0x201;
+    if (motor_config->type >= RFL_MOTOR_RM_M2006 && motor_config->type <= RFL_MOTOR_RM_GM6020)
+    {
+        motor_config->can_ordinal = 1;
+        motor_config->master_can_id = 0x201;
+    }
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
     motor_config->unitree_motor_id = 0;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+    if (motor_config->type >= RFL_MOTOR_DM_J8009_2EC && motor_config->type <= RFL_MOTOR_DM_J8009_2EC)
+    {
+        motor_config->can_ordinal = 1;
+        motor_config->master_can_id = 0x00;
+        motor_config->slave_can_id = 0x01;
+
+        motor_config->p_max = RFL_MOTOR_DAMIAO_DEFAULT_P_MAX;
+        motor_config->v_max = RFL_MOTOR_DAMIAO_DEFAULT_V_MAX;
+        motor_config->t_max = RFL_MOTOR_DAMIAO_DEFAULT_T_MAX;
+
+        motor_config->damiao_motor_mode = DAMIAO_MOTOR_MODE_POS_SPEED;
+    }
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 }
 
 /**
@@ -162,12 +180,24 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
     motor->type = motor_config->type;
     motor->controller_type = motor_config->controller_type;
     motor->mode_ = motor_config->mode;
+    motor->last_mode = motor_config->mode;
 
     motor->angle_format = motor_config->angle_format;
     if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_ANGLE)
         motor->angle_format = RFL_MOTOR_ANGLE_FORMAT_CIRCLED;
     else if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_DIRECTION)
         motor->angle_format = RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE;
+    if (motor_config->max_angle.deg < motor_config->min_angle.deg)
+        return;
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+    if (motor_config->type >= RFL_MOTOR_DM_J8009_2EC && motor_config->type <= RFL_MOTOR_DM_J8009_2EC)
+    {
+        rflAngleUpdate(&motor_config->max_angle, RFL_ANGLE_FORMAT_RADIAN,
+                       rflFloatConstrain(motor_config->max_angle.rad, -motor_config->p_max, motor_config->p_max));
+        rflAngleUpdate(&motor_config->min_angle, RFL_ANGLE_FORMAT_RADIAN,
+                       rflFloatConstrain(motor_config->min_angle.rad, -motor_config->p_max, motor_config->p_max));
+    }
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
     rflAngleUpdate(&motor->max_angle_, RFL_ANGLE_FORMAT_DEGREE, motor_config->max_angle.deg);
     rflAngleUpdate(&motor->min_angle_, RFL_ANGLE_FORMAT_DEGREE, motor_config->min_angle.deg);
 
@@ -225,7 +255,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
             ((rm_motor_s *)(motor->driver))->torque_factor = 0.0f;
 
         ((rm_motor_s *)(motor->driver))->can_rx_data =
-            rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->can_id);
+            rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->master_can_id);
 
         rm_motor_init((rm_motor_s *)(motor->driver));
 
@@ -249,6 +279,19 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
 
         break;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+    case RFL_MOTOR_DM_J8009_2EC:
+
+        motor->driver = (damiao_motor_s *)malloc(sizeof(damiao_motor_s));
+        memset(motor->driver, 0, sizeof(damiao_motor_s));
+
+        damiao_motor_init((damiao_motor_s *)(motor->driver), motor_config->damiao_motor_mode, motor_config->can_ordinal,
+                          motor_config->master_can_id, motor_config->slave_can_id, motor_config->p_max,
+                          motor_config->v_max, motor_config->t_max);
+
+        break;
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
 
     default:
         break;
@@ -308,6 +351,26 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
 
         break;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+    case RFL_MOTOR_DM_J8009_2EC:
+
+        damiao_motor_update_status((damiao_motor_s *)(motor->driver));
+
+        motor->torque_ = ((damiao_motor_s *)(motor->driver))->torque;
+
+        if (motor->external_speed == NULL)
+            motor->speed_ = ((damiao_motor_s *)(motor->driver))->velocity;
+        else
+            motor->speed_ = *motor->external_speed;
+
+        if (motor->external_angle == NULL)
+            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_RADIAN, ((damiao_motor_s *)(motor->driver))->position);
+        else
+            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
+
+        break;
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
 
     default:
         break;
@@ -372,8 +435,26 @@ void rflMotorUpdateControl(rfl_motor_s *motor)
         break;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+
+    case RFL_MOTOR_CONTROLLER_DAMIAO:
+
+        switch (motor->mode_)
+        {
+        case RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE:
+            rfl_motor_damiao_speed_angle_control(motor);
+            break;
+
+        default:
+            break;
+        }
+        rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_RADIAN,
+                       motor->set_angle_.rad * (motor->is_reversed ? -1.0f : 1.0f));
+
+        break;
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+
     default:
-        motor->control_output_ *= (motor->is_reversed ? -1.0f : 1.0f);
         break;
     }
 }
@@ -399,6 +480,34 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
 
         break;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+
+    case RFL_MOTOR_DM_J8009_2EC:
+
+        if (motor->mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE && motor->last_mode != RFL_MOTOR_CONTROL_MODE_NO_FORCE)
+        {
+            damiao_motor_enable((damiao_motor_s *)(motor->driver), false);
+            motor->last_mode = RFL_MOTOR_CONTROL_MODE_NO_FORCE;
+        }
+        else if (motor->mode_ != RFL_MOTOR_CONTROL_MODE_NO_FORCE && motor->last_mode == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
+        {
+            damiao_motor_enable((damiao_motor_s *)(motor->driver), true);
+            motor->last_mode = motor->mode_;
+        }
+
+        switch (motor->mode_)
+        {
+        case RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE:
+            damiao_motor_pos_speed_control((damiao_motor_s *)(motor->driver), motor->set_angle_.rad, motor->set_speed_);
+            break;
+
+        default:
+            break;
+        }
+
+        break;
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
 
     default:
         break;
@@ -438,7 +547,7 @@ void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, flo
         break;
     }
 
-    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, angle.deg);
 
     if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
     {
@@ -518,16 +627,17 @@ void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode)
             motor->mode_ = mode;
         }
     }
+    else if (motor->controller_type == RFL_MOTOR_CONTROLLER_DAMIAO)
+    {
+        motor->mode_ = mode;
+    }
 }
 /**
  * @brief 设置电机预期角速度
  */
 void rflMotorSetSpeed(rfl_motor_s *motor, float set_speed)
 {
-    if (motor->controller_type == RFL_MOTOR_CONTROLLER_PID)
-    {
-        motor->set_speed_ = set_speed;
-    }
+    motor->set_speed_ = set_speed;
 }
 /**
  * @brief 设置电机最大角速度

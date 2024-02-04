@@ -7,17 +7,14 @@
 
 #include "rfl_config.h"
 
-typedef struct RflCanRxMessage
-{
-    uint32_t can_id;
-    uint8_t data[8];
-} rfl_can_rx_msg_s;
+#define MAX_NUM_OF_RX_CAN_ID (12)
 
 typedef struct RflCan
 {
-    rfl_can_rx_msg_s *rx_msg_box;
-    uint32_t *id_table;
-    uint32_t box_size;
+    uint8_t usage_size; /*已使用的邮箱大小*/
+
+    uint8_t storage[MAX_NUM_OF_RX_CAN_ID][8]; /*邮箱储存*/
+    uint32_t id_table[MAX_NUM_OF_RX_CAN_ID];  /*canid表*/
 } rfl_can_rx_msg_box_s;
 
 extern void rflCanInit(void);

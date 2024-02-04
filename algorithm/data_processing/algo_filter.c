@@ -15,9 +15,9 @@
  * @param[in]      最小值
  * @retval         返回空
  */
-void rlfRampInit(ramp_function_source_t *ramp_source_type, float frame_period, float max, float min)
+void rlfRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min)
 {
-    ramp_source_type->frame_period = frame_period;
+    ramp_source_type->p_factor = p_factor;
     ramp_source_type->max_value = max;
     ramp_source_type->min_value = min;
     ramp_source_type->input = 0.0f;
@@ -44,9 +44,9 @@ float rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
         ramp_source_type->input = ramp_source_type->min_value;
     }
 
-    ramp_source_type->out += (ramp_source_type->input - ramp_source_type->out) * ramp_source_type->frame_period;
+    ramp_source_type->out += (ramp_source_type->input - ramp_source_type->out) * ramp_source_type->p_factor;
 
-    ramp_source_type->out = rflDeadZoneZero(ramp_source_type->out, 0.01f);
+    ramp_source_type->out = rflDeadZoneZero(ramp_source_type->out, 0.00001f);
 
     return ramp_source_type->out;
 }

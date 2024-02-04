@@ -87,12 +87,6 @@ void rfl_motor_pid_speed_angle_control(rfl_motor_s *motor)
     else
         rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->set_angle_.deg);
 
-    // /* 角度限幅 */
-    // if (motor->track_angle.deg > motor->max_angle_.deg)
-    //     rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
-    // else if (motor->track_angle.deg < motor->min_angle_.deg)
-    //     rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->min_angle_.deg);
-
     /* 角度环PID计算 */
     motor->set_speed_ = PID_calc(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid, motor->angle_.deg,
                                  motor->track_angle.deg);
@@ -152,12 +146,6 @@ void rfl_motor_unitree_speed_angle_control(rfl_motor_s *motor)
     else
         rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->set_angle_.deg);
 
-    // /* 角度限幅 */
-    // if (motor->track_angle.deg > motor->max_angle_.deg)
-    //     rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
-    // else if (motor->track_angle.deg < motor->min_angle_.deg)
-    //     rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->min_angle_.deg);
-
     ((unitree_motor_s *)(motor->driver))->set_shaft_angle = motor->track_angle.rad;
 
     ((unitree_motor_s *)(motor->driver))->k_a = ((rfl_motor_unitree_controller_s *)(motor->controller))->k_angle;
@@ -166,3 +154,11 @@ void rfl_motor_unitree_speed_angle_control(rfl_motor_s *motor)
     ((unitree_motor_s *)(motor->driver))->set_mode = 1;
 }
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+void rfl_motor_damiao_speed_angle_control(rfl_motor_s *motor)
+{
+    rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_RADIAN,
+                   rflFloatConstrain(motor->set_angle_.rad, motor->min_angle_.rad, motor->max_angle_.rad));
+}
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */

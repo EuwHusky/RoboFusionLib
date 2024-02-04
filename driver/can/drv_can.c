@@ -9,39 +9,30 @@
 #define RFL_CAN_NUM RFL_CORE_WPIE_HPM6750_CAN_NUM
 #endif
 
-static rfl_can_rx_msg_box_s *rfl_can_rx_message_boxes = NULL;
+static rfl_can_rx_msg_box_s *rx_message_boxes = NULL;
 
 void rflCanRxMessageBoxesInit(void)
 {
-    rfl_can_rx_message_boxes = (rfl_can_rx_msg_box_s *)malloc(RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
-
-    for (uint8_t i = 0; i < RFL_CAN_NUM; i++)
-    {
-        rfl_can_rx_message_boxes[i].box_size = 0;
-        rfl_can_rx_message_boxes[i].rx_msg_box = (rfl_can_rx_msg_s *)malloc(sizeof(rfl_can_rx_msg_s));
-        rfl_can_rx_message_boxes[i].id_table = (uint32_t *)malloc(sizeof(uint32_t));
-    }
+    rx_message_boxes = (rfl_can_rx_msg_box_s *)malloc(RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
+    memset(rx_message_boxes, 0, RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
 }
 
 void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id)
 {
-    rfl_can_rx_message_boxes[can_ordinal - 1].box_size++;
-    rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box =
-        (rfl_can_rx_msg_s *)realloc(rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box,
-                                    rfl_can_rx_message_boxes[can_ordinal - 1].box_size * sizeof(rfl_can_rx_msg_s));
-    rfl_can_rx_message_boxes[can_ordinal - 1].id_table =
-        (uint32_t *)realloc(rfl_can_rx_message_boxes[can_ordinal - 1].id_table,
-                            rfl_can_rx_message_boxes[can_ordinal - 1].box_size * sizeof(uint32_t));
-    rfl_can_rx_message_boxes[can_ordinal - 1].id_table[rfl_can_rx_message_boxes[can_ordinal - 1].box_size - 1] = can_id;
+    if (rx_message_boxes[can_ordinal - 1].usage_size >= MAX_NUM_OF_RX_CAN_ID)
+        return;
+
+    rx_message_boxes[can_ordinal - 1].usage_size++;
+    rx_message_boxes[can_ordinal - 1].id_table[rx_message_boxes[can_ordinal - 1].usage_size - 1] = can_id;
 }
 
 void rflCanSaveToRxMessageBox(uint8_t can_ordinal, uint32_t can_id, uint8_t rx_data[8])
 {
-    for (uint8_t i = 0; i < rfl_can_rx_message_boxes[can_ordinal - 1].box_size; i++)
+    for (uint8_t i = 0; i < rx_message_boxes[can_ordinal - 1].usage_size; i++)
     {
-        if (rfl_can_rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
+        if (rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
         {
-            memcpy(rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box[i].data, rx_data, 8 * sizeof(uint8_t));
+            memcpy(rx_message_boxes[can_ordinal - 1].storage[i], rx_data, 8 * sizeof(uint8_t));
             break;
         }
     }
@@ -49,10 +40,12 @@ void rflCanSaveToRxMessageBox(uint8_t can_ordinal, uint32_t can_id, uint8_t rx_d
 
 uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id)
 {
-    for (uint8_t i = 0; i < rfl_can_rx_message_boxes[can_ordinal - 1].box_size; i++)
+    for (uint8_t i = 0; i < rx_message_boxes[can_ordinal - 1].usage_size; i++)
     {
-        if (rfl_can_rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
-            return rfl_can_rx_message_boxes[can_ordinal - 1].rx_msg_box[i].data;
+        if (rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
+        {
+            return rx_message_boxes[can_ordinal - 1].storage[i];
+        }
     }
 
     return NULL;

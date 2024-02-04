@@ -15,7 +15,8 @@
 /* 电机模块配置 ------------------------------ */
 
 #define RFL_DEV_MOTOR_RM_MOTOR 1      // 未完成开关功能，必须开启
-#define RFL_DEV_MOTOR_UNITREE_MOTOR 1 // 已完成开关功能
+#define RFL_DEV_MOTOR_UNITREE_MOTOR 0 // 已完成开关功能
+#define RFL_DEV_MOTOR_DAMIAO_MOTOR 1  // 已完成开关功能
 
 /* 编码器模块配置 ------------------------------ */
 

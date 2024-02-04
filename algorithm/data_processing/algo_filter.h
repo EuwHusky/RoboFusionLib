@@ -3,16 +3,14 @@
 
 #include "stdint.h"
 
-#define __packed __attribute__((packed))
-
 typedef struct
 {
     float input;        // 输入数据
     float out;          // 输出数据
     float min_value;    // 限幅最小值
     float max_value;    // 限幅最大值
-    float frame_period; // 时间间隔
-} __packed ramp_function_source_t;
+    float p_factor; // 时间间隔
+} ramp_function_source_t;
 
 typedef struct
 {
@@ -20,7 +18,7 @@ typedef struct
     float out;          // 滤波输出的数据
     float num[1];       // 滤波参数
     float frame_period; // 滤波的时间间隔 单位 s
-} __packed first_order_filter_type_t;
+} first_order_filter_type_t;
 
 typedef struct
 {
@@ -32,7 +30,7 @@ typedef struct
     uint8_t wall_depth;   // 墙壁深度
 
     uint8_t status;
-} __packed sliding_window_filter_s_t;
+} sliding_window_filter_s_t;
 
 /**
  * @brief          斜波函数初始化
@@ -43,7 +41,7 @@ typedef struct
  * @param[in]      最小值
  * @retval         返回空
  */
-extern void rlfRampInit(ramp_function_source_t *ramp_source_type, float frame_period, float max, float min);
+extern void rlfRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min);
 /**
  * @brief          斜波函数计算，根据输入的值进行叠加， 输入单位为 /s 即一秒后增加输入的值
  * @author         RM

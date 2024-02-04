@@ -8,11 +8,25 @@
 
 #include "algo_angle.h"
 
+#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#include "bsp_rm_motor.h"
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#include "bsp_unitree_motor.h"
+#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#include "bsp_damiao_motor.h"
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+
 /**
  * @brief 电机类型
  */
 typedef enum RflMotorType
 {
+    RFL_MOTOR_NULL = 0,
+
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
     RFL_MOTOR_RM_M2006,
     RFL_MOTOR_RM_M3508,
@@ -23,7 +37,10 @@ typedef enum RflMotorType
     RFL_MOTOR_UNITREE_GO_M8010_6,
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
 
-    RFL_MOTOR_TYPE_NUM
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+    RFL_MOTOR_DM_J8009_2EC,
+#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+
 } rfl_motor_type_e;
 
 /**
@@ -33,7 +50,9 @@ typedef enum RflMotorControllerType
 {
     RFL_MOTOR_CONTROLLER_PID, // PID控制器
 
-    RFL_MOTOR_CONTROLLER_UNITREE, // Unitree直接控制器
+    RFL_MOTOR_CONTROLLER_UNITREE, // 宇树直接控制器
+
+    RFL_MOTOR_CONTROLLER_DAMIAO, // 达妙直接控制器
 } rfl_motor_controller_type_e;
 
 /**
@@ -97,14 +116,22 @@ typedef struct RflMotorConfig
 
     /* 专有参数 */
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if (RFL_DEV_MOTOR_RM_MOTOR == 1 || RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
     uint8_t can_ordinal;
-    uint32_t can_id;
+    uint32_t master_can_id;
+    uint32_t slave_can_id;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 #if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
     uint16_t unitree_motor_id;
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+    float p_max;
+    float v_max;
+    float t_max;
+    damiao_motor_mode_e damiao_motor_mode;
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 } rfl_motor_config_s;
 
@@ -172,5 +199,11 @@ typedef struct RflMotorConfig
 #define RFL_MOTOR_UNITREE_DEFAULT_K_ANGLE (0.0f)
 #define RFL_MOTOR_UNITREE_DEFAULT_K_SPEED (0.0f)
 #endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+
+#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#define RFL_MOTOR_DAMIAO_DEFAULT_P_MAX (12.5f)
+#define RFL_MOTOR_DAMIAO_DEFAULT_V_MAX (45.0f)
+#define RFL_MOTOR_DAMIAO_DEFAULT_T_MAX (18.0f)
+#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
 #endif /* _DEV_MOTOR_CONFIG_H__ */

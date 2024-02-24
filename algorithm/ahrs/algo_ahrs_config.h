@@ -5,6 +5,6 @@
 #define USE_MADGWICK 1
 #define USE_QEKF 2
 
-#define AHRS_USE USE_MAHONY
+#define AHRS_USE USE_QEKF
 
 #endif /* _ALGO_AHRS_CONFIG_H__ */

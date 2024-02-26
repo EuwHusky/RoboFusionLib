@@ -2,7 +2,6 @@
 
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
 
-#include "cnu_hpm_bsp_cyc.h"
 #include "hpm_csr_drv.h"
 
 #define CPU_FREQ_Hz 648000000 // 648MHZ

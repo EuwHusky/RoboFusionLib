@@ -92,6 +92,9 @@ typedef struct RmMotor
     float rpm_to_effector_speed_factor;
     float torque_factor;
 
+    uint8_t can_ordinal;
+    uint32_t master_can_id;
+    // uint32_t slave_can_id;
     const uint8_t *can_rx_data;
     rm_motor_feedback_s feedback_;
 

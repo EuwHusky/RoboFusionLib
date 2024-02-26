@@ -4,9 +4,7 @@
 
 #if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
 
-#include "main.h"
-
-#include "cmsis_os.h"
+#include "drv_delay.h"
 
 #include "drv_can.h"
 
@@ -25,7 +23,7 @@ static uint16_t damiao_motor_get_mode_id_set(damiao_motor_mode_e mode)
 
 static void damiao_motor_control_delay(uint16_t ms)
 {
-    osDelay(ms);
+    rflOsDelayMs(ms);
 }
 
 void damiao_motor_init(damiao_motor_s *damiao_motor, damiao_motor_mode_e mode, uint8_t can, uint32_t master_id,

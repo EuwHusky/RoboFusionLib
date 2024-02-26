@@ -18,7 +18,7 @@
 
 static rfl_can_rx_msg_box_s *rx_message_boxes = NULL;
 
-void rflCanRxMessageBoxesInit(void)
+void rfl_can_rx_message_boxes_init(void)
 {
     rx_message_boxes = (rfl_can_rx_msg_box_s *)malloc(RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
     memset(rx_message_boxes, 0, RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
@@ -297,7 +297,7 @@ void rflCanInit(void)
 
 #endif
 
-    rflCanRxMessageBoxesInit();
+    rfl_can_rx_message_boxes_init();
 }
 
 /* 使用RM官方电机 */

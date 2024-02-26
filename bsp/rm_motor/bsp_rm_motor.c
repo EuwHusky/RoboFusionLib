@@ -1,5 +1,9 @@
 #include "bsp_rm_motor.h"
 
+#include "drv_delay.h"
+
+#include "drv_can.h"
+
 #if (RFL_DEV_MOTOR_RM_MOTOR == 1)
 
 #define CONTROL_MODE_NO_FORCE 0  // 无力
@@ -10,8 +14,18 @@
 #define ANGLE_FORMAT_CIRCLED 0  // 多圈角度
 #define ANGLE_FORMAT_ABSOLUTE 1 // 绝对角度
 
+static void rm_motor_control_delay(uint16_t ms)
+{
+    rflOsDelayMs(ms);
+}
+
 void rm_motor_init(rm_motor_s *rm_motor)
 {
+    rflCanRxMessageBoxAddId(rm_motor->can_ordinal, rm_motor->master_can_id);
+    rm_motor_control_delay(5);
+    rm_motor->can_rx_data = rflCanGetRxMessageBoxData(rm_motor->can_ordinal, rm_motor->master_can_id);
+    rm_motor_control_delay(5);
+
     // 更新电机反馈数据
     getRmMotorFeedback(&rm_motor->feedback_, rm_motor->can_rx_data);
 

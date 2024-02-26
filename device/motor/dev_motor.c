@@ -254,8 +254,10 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         else
             ((rm_motor_s *)(motor->driver))->torque_factor = 0.0f;
 
-        ((rm_motor_s *)(motor->driver))->can_rx_data =
-            rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->master_can_id);
+        ((rm_motor_s *)(motor->driver))->can_ordinal = motor_config->can_ordinal;
+        ((rm_motor_s *)(motor->driver))->master_can_id = motor_config->master_can_id;
+        // ((rm_motor_s *)(motor->driver))->can_rx_data =
+        //     rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->master_can_id);
 
         rm_motor_init((rm_motor_s *)(motor->driver));
 

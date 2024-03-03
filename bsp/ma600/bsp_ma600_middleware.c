@@ -6,13 +6,13 @@
 
 // 定义片选引脚port和pin
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
-uint32_t group_of_cs_ports[NUM_OF_MA600] = {GPIO_DO_GPIOC};
-uint8_t group_of_cs_pins[NUM_OF_MA600] = {25};
+uint32_t group_of_cs_ports[NUM_OF_MA600] = {GPIO_DO_GPIOC, GPIO_DO_GPIOC};
+uint8_t group_of_cs_pins[NUM_OF_MA600] = {30, 31};
 
 #elif (RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD)
 
-GPIO_TypeDef *group_of_cs_ports[4] = {CS_J2_GPIO_Port, CS_J3_GPIO_Port, CS_J4_GPIO_Port, CS_J6_GPIO_Port};
-uint16_t group_of_cs_pins[4] = {CS_J2_Pin, CS_J3_Pin, CS_J4_Pin, CS_J6_Pin};
+GPIO_TypeDef *group_of_cs_ports[NUM_OF_MA600] = {CS_J2_GPIO_Port, CS_J3_GPIO_Port, CS_J4_GPIO_Port, CS_J6_GPIO_Port};
+uint16_t group_of_cs_pins[NUM_OF_MA600] = {CS_J2_Pin, CS_J3_Pin, CS_J4_Pin, CS_J6_Pin};
 #endif
 
 // 初始化相关片选IO

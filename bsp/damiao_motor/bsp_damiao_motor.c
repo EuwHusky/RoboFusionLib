@@ -4,9 +4,8 @@
 
 #if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
 
-#include "drv_delay.h"
-
 #include "drv_can.h"
+#include "drv_delay.h"
 
 #include "algo_value.h"
 

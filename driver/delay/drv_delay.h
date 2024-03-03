@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+#include "rfl_config.h"
+
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 #elif RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
 extern void delay_init(void);

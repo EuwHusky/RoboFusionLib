@@ -42,21 +42,21 @@
 /**
  * @brief 电机转子编码器码值转末端执行器角度值系数
  * 算式 360.0f / RM_MOTOR_ECD_RANGE / RM_MOTOR_REDUCTION_RATIO
- * 备注 默认RM_MOTOR_REDUCTION_RATIO = 1
+ * @note 默认RM_MOTOR_REDUCTION_RATIO = 1
  */
 #define RM_MOTOR_ECD_TO_EFFECTOR_ANGLE_FACTOR (0.04395067757294591624954218044195f)
 
 /**
  * @brief 电机转子RPM转换末端执行器角速度系数
  * 算式 2 * PI / 60.0f / RM_MOTOR_REDUCTION_RATIO
- * 备注 默认RM_MOTOR_REDUCTION_RATIO = 1
+ * @note 默认RM_MOTOR_REDUCTION_RATIO = 1
  */
 #define RM_MOTOR_RPM_TO_EFFECTOR_SPEED_FACTOR (0.10471975511965977461542144610932f)
 
 /**
  * @brief 用于计算转子转动圈数的参数
  * 算式 10000 / RM_MOTOR_ECD_RANGE
- * 备注 10000是定死的，应该够大够用，以防数据溢出用或角度精度过低而设
+ * @note 10000是定死的，应该够大够用，以防数据溢出用或角度精度过低而设
  */
 #define RM_MOTOR_ROTOR_TURNS_RANGE_PARAM (1.2208521548040532291539494567208f)
 

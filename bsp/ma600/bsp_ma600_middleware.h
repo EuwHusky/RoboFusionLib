@@ -20,7 +20,7 @@
 extern SPI_HandleTypeDef hspi2;
 #endif
 
-#define NUM_OF_MA600 4 // 使用的MA600个数
+#define NUM_OF_MA600 2 // 使用的MA600个数
 
 extern void MA600_GPIO_init(void);
 extern void MA600_com_init(void);

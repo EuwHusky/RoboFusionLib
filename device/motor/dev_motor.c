@@ -288,9 +288,9 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         motor->driver = (damiao_motor_s *)malloc(sizeof(damiao_motor_s));
         memset(motor->driver, 0, sizeof(damiao_motor_s));
 
-        damiao_motor_init((damiao_motor_s *)(motor->driver), motor_config->damiao_motor_mode, motor_config->can_ordinal,
-                          motor_config->master_can_id, motor_config->slave_can_id, motor_config->p_max,
-                          motor_config->v_max, motor_config->t_max);
+        damiao_motor_init((damiao_motor_s *)(motor->driver), motor_config->damiao_motor_mode, motor->is_reversed,
+                          motor_config->can_ordinal, motor_config->master_can_id, motor_config->slave_can_id,
+                          motor_config->p_max, motor_config->v_max, motor_config->t_max);
 
         break;
 #endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
@@ -450,9 +450,7 @@ void rflMotorUpdateControl(rfl_motor_s *motor)
         default:
             break;
         }
-        rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_RADIAN,
-                       motor->set_angle_.rad * (motor->is_reversed ? -1.0f : 1.0f));
-
+        // 已将电机安装极性属性内置到电机驱动 此处无需做反转处理
         break;
 #endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
 
@@ -501,7 +499,7 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
         switch (motor->mode_)
         {
         case RFL_MOTOR_CONTROL_MODE_SPEED_ANGLE:
-            damiao_motor_pos_speed_control((damiao_motor_s *)(motor->driver), motor->set_angle_.rad, motor->set_speed_);
+            damiao_motor_pos_speed_control((damiao_motor_s *)(motor->driver), motor->set_angle_.rad, motor->max_speed_);
             break;
 
         default:

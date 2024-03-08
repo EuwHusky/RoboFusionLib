@@ -17,6 +17,8 @@
 
 typedef enum
 {
+    GAME_ROBOT_HP_CMD_ID = 0x0003,
+
     CUSTOM_ROBOT_DATA_CMD_ID = 0x0302,
     REMOTE_CONTROL_CMD_ID = 0x0304,
 } referee_cmd_id_t;

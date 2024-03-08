@@ -22,6 +22,7 @@ typedef enum DamiaoMotorMode
 typedef struct DamiaoMotor
 {
     damiao_motor_mode_e mode;
+    bool is_reversed;
 
     uint8_t can_ordinal;
     uint32_t master_can_id;
@@ -40,8 +41,8 @@ typedef struct DamiaoMotor
 
 } damiao_motor_s;
 
-extern void damiao_motor_init(damiao_motor_s *damiao_motor, damiao_motor_mode_e mode, uint8_t can, uint32_t master_id,
-                              uint32_t slave_id, float p_max, float v_max, float t_max);
+extern void damiao_motor_init(damiao_motor_s *damiao_motor, damiao_motor_mode_e mode, bool is_reversed, uint8_t can,
+                              uint32_t master_id, uint32_t slave_id, float p_max, float v_max, float t_max);
 
 extern void damiao_motor_update_status(damiao_motor_s *damiao_motor);
 

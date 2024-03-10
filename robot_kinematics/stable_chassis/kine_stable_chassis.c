@@ -457,6 +457,7 @@ static void chassis_update_motor_control(rfl_chassis_s *chassis)
         }
         else if (chassis->type == RFL_CHASSIS_DUAL_STEER)
         {
+            // 和四舵一样 只用删掉部分电机 暂时懒得做了
         }
         else if (chassis->type == RFL_CHASSIS_FOUR_STEER)
         {

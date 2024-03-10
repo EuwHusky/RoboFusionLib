@@ -3,8 +3,6 @@
 
 #include "stdint.h"
 
-#include "main.h"
-
 #include "rfl_config.h"
 
 #define MAX_NUM_OF_RX_CAN_ID (12)

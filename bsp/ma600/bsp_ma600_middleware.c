@@ -6,8 +6,8 @@
 
 // 定义片选引脚port和pin
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
-uint32_t group_of_cs_ports[NUM_OF_MA600] = {GPIO_DO_GPIOC, GPIO_DO_GPIOC};
-uint8_t group_of_cs_pins[NUM_OF_MA600] = {30, 31};
+uint32_t group_of_cs_ports[NUM_OF_MA600] = {GPIO_DO_GPIOA, GPIO_DO_GPIOA};
+uint8_t group_of_cs_pins[NUM_OF_MA600] = {6, 5};
 
 #elif (RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD)
 
@@ -44,7 +44,7 @@ void MA600_com_init(void)
 
     if (status_success != spi_master_timing_init(MA600_SPI, &timing_config))
     {
-        // printf("SPI master timing init failed\n"); // 时钟初始化失败输出报错
+        printf("SPI master timing init failed\n"); // 时钟初始化失败输出报错
     }
 
     /* 为主设备设置 SPI 格式配置 */

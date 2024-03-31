@@ -80,9 +80,9 @@ void damiao_motor_update_status(damiao_motor_s *damiao_motor)
 void damiao_motor_enable(damiao_motor_s *damiao_motor, bool enable)
 {
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-    while (can_is_secondary_transmit_buffer_full(
-        damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal))) // 检查发送缓冲区是否已满
-        ;
+    for (uint16_t i = 0; i < 1000; i++) // 检查发送缓冲区是否已满，满则循环延时
+        if (!can_is_secondary_transmit_buffer_full(damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal)))
+            break;
 #endif
     rflCanSendData(damiao_motor->can_ordinal,
                    damiao_motor_get_mode_id_set(damiao_motor->mode) + damiao_motor->slave_can_id,
@@ -110,9 +110,9 @@ void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos,
     damiao_motor->can_tx_data[7] = *(vbuf + 3);
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-    while (can_is_secondary_transmit_buffer_full(
-        damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal))) // 检查发送缓冲区是否已满
-        ;
+    for (uint16_t i = 0; i < 1000; i++) // 检查发送缓冲区是否已满，满则循环延时
+        if (!can_is_secondary_transmit_buffer_full(damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal)))
+            break;
 #endif
     rflCanSendData(damiao_motor->can_ordinal, CONTROL_MODE_ID_SET_POS_SPEED + damiao_motor->slave_can_id,
                    damiao_motor->can_tx_data);

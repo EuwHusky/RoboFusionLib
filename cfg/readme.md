@@ -16,7 +16,7 @@ rfl_config.h
 
 /* 主控 ------------------------------ */
 
-#define RFL_CONFIG_CORE /*选择使用的主控*/
+#define RFL_CONFIG_CORE RFL_CORE_WPIE_HPM6750
 
 /* 遥控器模块配置 ------------------------------ */
 
@@ -30,8 +30,10 @@ rfl_config.h
 
 /* 编码器模块配置 ------------------------------ */
 
-#define RFL_DEV_ENCODER_MA600 0 // 已完成开关功能
+#define RFL_DEV_ENCODER_MA600 0          // 已完成开关功能
+#define RFL_DEV_ENCODER_MA600_USED_NUM 1 // 使用的MA600个数
 
 #endif /* _RFL_CONFIG_H__ */
+
 
 ```

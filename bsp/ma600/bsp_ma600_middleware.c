@@ -6,20 +6,21 @@
 
 // 定义片选引脚port和pin
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
-uint32_t group_of_cs_ports[NUM_OF_MA600] = {GPIO_DO_GPIOA, GPIO_DO_GPIOA};
-uint8_t group_of_cs_pins[NUM_OF_MA600] = {6, 5};
+uint32_t group_of_cs_ports[RFL_DEV_ENCODER_MA600_USED_NUM] = {GPIO_DO_GPIOA};
+uint8_t group_of_cs_pins[RFL_DEV_ENCODER_MA600_USED_NUM] = {6};
 
 #elif (RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD)
 
-GPIO_TypeDef *group_of_cs_ports[NUM_OF_MA600] = {CS_J2_GPIO_Port, CS_J3_GPIO_Port, CS_J4_GPIO_Port, CS_J6_GPIO_Port};
-uint16_t group_of_cs_pins[NUM_OF_MA600] = {CS_J2_Pin, CS_J3_Pin, CS_J4_Pin, CS_J6_Pin};
+GPIO_TypeDef *group_of_cs_ports[RFL_DEV_ENCODER_MA600_USED_NUM] = {CS_J2_GPIO_Port, CS_J3_GPIO_Port, CS_J4_GPIO_Port,
+                                                                   CS_J6_GPIO_Port};
+uint16_t group_of_cs_pins[RFL_DEV_ENCODER_MA600_USED_NUM] = {CS_J2_Pin, CS_J3_Pin, CS_J4_Pin, CS_J6_Pin};
 #endif
 
 // 初始化相关片选IO
 void MA600_GPIO_init(void)
 {
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
-    for (uint8_t i = 0; i < NUM_OF_MA600; i++)
+    for (uint8_t i = 0; i < RFL_DEV_ENCODER_MA600_USED_NUM; i++)
         gpio_set_pin_output_with_initial(HPM_GPIO0, group_of_cs_ports[i], group_of_cs_pins[i], 1);
 
 #elif (RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD)
@@ -70,7 +71,7 @@ void MA600_delay_ms(uint16_t ms)
 #endif
 }
 
-#if (NUM_OF_MA600 > 1)
+#if (RFL_DEV_ENCODER_MA600_USED_NUM > 1)
 // 拉低片选
 void MA600_ACCEL_NS_L(uint8_t cs_num)
 {

@@ -10,7 +10,7 @@ bool MA600_init(void)
     return true;
 }
 
-#if (NUM_OF_MA600 > 1)
+#if (RFL_DEV_ENCODER_MA600_USED_NUM > 1)
 // 直接读取
 uint16_t MA600_read(uint8_t num)
 {

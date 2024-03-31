@@ -20,14 +20,12 @@
 extern SPI_HandleTypeDef hspi2;
 #endif
 
-#define NUM_OF_MA600 2 // 使用的MA600个数
-
 extern void MA600_GPIO_init(void);
 extern void MA600_com_init(void);
 
 extern void MA600_delay_ms(uint16_t ms);
 
-#if (NUM_OF_MA600 > 1)
+#if (RFL_DEV_ENCODER_MA600_USED_NUM > 1)
 extern void MA600_ACCEL_NS_L(uint8_t cs_num);
 extern void MA600_ACCEL_NS_H(uint8_t cs_num);
 #else

@@ -81,9 +81,10 @@ extern void rflMotorUpdateControl(rfl_motor_s *motor);
 extern void rflMotorExecuteControl(rfl_motor_s *motor);
 
 /**
- * @brief 重置电机零位，将当前位置设为零位
+ * @brief 重置电机角度
  */
-extern void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float angle);
+extern void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float angle,
+                               bool security_restriction);
 
 /**
  * @brief 设置电机控制模式

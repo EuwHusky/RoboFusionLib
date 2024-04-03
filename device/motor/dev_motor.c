@@ -256,8 +256,6 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
 
         ((rm_motor_s *)(motor->driver))->can_ordinal = motor_config->can_ordinal;
         ((rm_motor_s *)(motor->driver))->master_can_id = motor_config->master_can_id;
-        // ((rm_motor_s *)(motor->driver))->can_rx_data =
-        //     rflCanGetRxMessageBoxData(motor_config->can_ordinal, motor_config->master_can_id);
 
         rm_motor_init((rm_motor_s *)(motor->driver));
 
@@ -515,17 +513,21 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
 }
 
 /**
- * @brief 重置电机零位，将当前位置设为零位
+ * @brief 重置电机角度
  */
-void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float source_angle)
+void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float source_angle,
+                        bool security_restriction)
 {
     rfl_angle_s angle = {0};
     rflAngleUpdate(&angle, angle_format, source_angle * (motor->is_reversed ? -1.0f : 1.0f)); // 输入输出需考虑反转
 
-    if (angle.deg > motor->max_angle_.deg)
-        rflAngleUpdate(&angle, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
-    else if (angle.deg < motor->min_angle_.deg)
-        rflAngleUpdate(&angle, RFL_ANGLE_FORMAT_DEGREE, motor->min_angle_.deg);
+    if (security_restriction)
+    {
+        if (angle.deg > motor->max_angle_.deg)
+            rflAngleUpdate(&angle, RFL_ANGLE_FORMAT_DEGREE, motor->max_angle_.deg);
+        else if (angle.deg < motor->min_angle_.deg)
+            rflAngleUpdate(&angle, RFL_ANGLE_FORMAT_DEGREE, motor->min_angle_.deg);
+    }
 
     switch (motor->type)
     {

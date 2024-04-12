@@ -8,6 +8,7 @@
 #elif RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 #include "board.h"
 #include "hpm_can_drv.h"
+#include "hpm_interrupt.h"
 #endif
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
@@ -22,10 +23,16 @@ void rfl_can_rx_message_boxes_init(void)
 {
     rx_message_boxes = (rfl_can_rx_msg_box_s *)malloc(RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
     memset(rx_message_boxes, 0, RFL_CAN_NUM * sizeof(rfl_can_rx_msg_box_s));
+
+    for (uint8_t i = 0; i < RFL_CAN_NUM; i++)
+        for (uint8_t j = 0; j < MAX_NUM_OF_RX_CAN_ID; j++)
+            rx_message_boxes[i].rx_callback_func_list[j] = NULL;
 }
 
 void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id)
 {
+    if (can_ordinal > RFL_CAN_NUM)
+        return;
     if (rx_message_boxes[can_ordinal - 1].usage_size >= MAX_NUM_OF_RX_CAN_ID)
         return;
 
@@ -33,13 +40,33 @@ void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id)
     rx_message_boxes[can_ordinal - 1].id_table[rx_message_boxes[can_ordinal - 1].usage_size - 1] = can_id;
 }
 
+void rflCanRxMessageBoxAddRxCallbackFunc(uint8_t can_ordinal, uint32_t can_id, void (*rx_callback_func)(void))
+{
+    if (can_ordinal > RFL_CAN_NUM)
+        return;
+
+    for (uint8_t i = 0; i < rx_message_boxes[can_ordinal - 1].usage_size; i++)
+    {
+        if (rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
+        {
+            rx_message_boxes[can_ordinal - 1].rx_callback_func_list[i] = rx_callback_func;
+            break;
+        }
+    }
+}
+
 void rflCanSaveToRxMessageBox(uint8_t can_ordinal, uint32_t can_id, uint8_t rx_data[8])
 {
+    if (can_ordinal > RFL_CAN_NUM)
+        return;
+
     for (uint8_t i = 0; i < rx_message_boxes[can_ordinal - 1].usage_size; i++)
     {
         if (rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
         {
             memcpy(rx_message_boxes[can_ordinal - 1].storage[i], rx_data, 8 * sizeof(uint8_t));
+            if (rx_message_boxes[can_ordinal - 1].rx_callback_func_list[i] != NULL)
+                rx_message_boxes[can_ordinal - 1].rx_callback_func_list[i]();
             break;
         }
     }
@@ -47,6 +74,9 @@ void rflCanSaveToRxMessageBox(uint8_t can_ordinal, uint32_t can_id, uint8_t rx_d
 
 uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id)
 {
+    if (can_ordinal > RFL_CAN_NUM)
+        return;
+
     for (uint8_t i = 0; i < rx_message_boxes[can_ordinal - 1].usage_size; i++)
     {
         if (rx_message_boxes[can_ordinal - 1].id_table[i] == can_id)
@@ -60,6 +90,9 @@ uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id)
 
 void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8])
 {
+    if (can_ordinal > RFL_CAN_NUM)
+        return;
+
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
     can_transmit_buf_t tx_buf;
     memset(&tx_buf, 0, sizeof(can_transmit_buf_t));
@@ -92,11 +125,6 @@ void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8])
 }
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-
-SDK_DECLARE_EXT_ISR_M(BOARD_CAN1_IRQn, can1_callback);
-SDK_DECLARE_EXT_ISR_M(BOARD_CAN2_IRQn, can2_callback);
-SDK_DECLARE_EXT_ISR_M(BOARD_CAN3_IRQn, can3_callback);
-SDK_DECLARE_EXT_ISR_M(BOARD_CAN4_IRQn, can4_callback);
 
 static volatile uint8_t can_error_flags[4]; // 错误中断标志
 static volatile bool can_has_error[4];      // 出现错误
@@ -204,6 +232,11 @@ void can4_callback(void)
     can_error_flags[3] = can_get_error_interrupt_flags(BOARD_CAN4);
     can_clear_error_interrupt_flags(BOARD_CAN4, can_error_flags[3]);
 }
+
+SDK_DECLARE_EXT_ISR_M(BOARD_CAN1_IRQn, can1_callback);
+SDK_DECLARE_EXT_ISR_M(BOARD_CAN2_IRQn, can2_callback);
+SDK_DECLARE_EXT_ISR_M(BOARD_CAN3_IRQn, can3_callback);
+SDK_DECLARE_EXT_ISR_M(BOARD_CAN4_IRQn, can4_callback);
 
 #elif RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
 

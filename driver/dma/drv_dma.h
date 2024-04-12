@@ -9,6 +9,7 @@
 #include "board.h"
 #include "hpm_dma_drv.h"
 #include "hpm_dmamux_drv.h"
+#include "hpm_interrupt.h"
 
 #define RFL_DMA_NUM RFL_CORE_WPIE_HPM6750_DMA_NUM
 #define RFL_DMA_CHANNEL_NUM RFL_CORE_WPIE_HPM6750_DMACHN_NUM

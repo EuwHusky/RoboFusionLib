@@ -1,5 +1,17 @@
 #include "algo_math.h"
 
+int16_t rflAbsInt16(int16_t value)
+{
+    if (value > 0)
+    {
+        return value;
+    }
+    else
+    {
+        return -value;
+    }
+}
+
 float rflSqrt(float x)
 {
     const float threehalfs = 1.5f;

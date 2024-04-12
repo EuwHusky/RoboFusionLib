@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 
+/**
+ * @brief 死区置零
+ */
 #define rflDeadZoneZero(input, dealine) (((input) > (dealine) || (input) < -(dealine)) ? (input) : 0)
 
 /**

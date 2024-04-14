@@ -71,8 +71,8 @@ typedef struct RmMotorFeedback
     uint8_t temperate;
 } rm_motor_feedback_s;
 
-/* 获取RM电机反馈数据 */
-#define getRmMotorFeedback(ptr, data)                                                                                  \
+/* 解析RM电机反馈数据 */
+#define decode_rm_motor_feedback(ptr, data)                                                                            \
     {                                                                                                                  \
         (ptr)->ecd = (uint16_t)((data)[0] << 8 | (data)[1]);                                                           \
         (ptr)->speed_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);                                                     \

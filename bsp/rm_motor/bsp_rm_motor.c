@@ -21,13 +21,11 @@ static void rm_motor_control_delay(uint16_t ms)
 
 void rm_motor_init(rm_motor_s *rm_motor)
 {
-    rflCanRxMessageBoxAddId(rm_motor->can_ordinal, rm_motor->master_can_id);
-    rm_motor_control_delay(5);
     rm_motor->can_rx_data = rflCanGetRxMessageBoxData(rm_motor->can_ordinal, rm_motor->master_can_id);
     rm_motor_control_delay(5);
 
     // 更新电机反馈数据
-    getRmMotorFeedback(&rm_motor->feedback_, rm_motor->can_rx_data);
+    decode_rm_motor_feedback(&rm_motor->feedback_, rm_motor->can_rx_data);
 
     // 记录上电时ecd
     rm_motor->ecd_angle_offset = rm_motor->feedback_.ecd;
@@ -48,7 +46,7 @@ void rm_motor_init(rm_motor_s *rm_motor)
 void rm_motor_update_status(rm_motor_s *rm_motor, uint8_t control_mode, uint8_t angle_format)
 {
     // 更新电机反馈数据
-    getRmMotorFeedback(&rm_motor->feedback_, rm_motor->can_rx_data);
+    decode_rm_motor_feedback(&rm_motor->feedback_, rm_motor->can_rx_data);
 
     if (control_mode == CONTROL_MODE_SPEED)
     {

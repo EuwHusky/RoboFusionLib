@@ -58,8 +58,8 @@ void damiao_motor_init(damiao_motor_s *damiao_motor, damiao_motor_mode_e mode, b
     damiao_motor->slave_can_id = slave_id;
 
     rflCanRxMessageBoxAddId(damiao_motor->can_ordinal, damiao_motor->master_can_id);
-    damiao_motor_control_delay(5);
     damiao_motor->can_rx_data = rflCanGetRxMessageBoxData(damiao_motor->can_ordinal, damiao_motor->master_can_id);
+    damiao_motor_control_delay(5);
 
     damiao_motor->p_max = p_max;
     damiao_motor->v_max = v_max;

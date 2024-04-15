@@ -373,6 +373,7 @@ static void chassis_update_wz_set(rfl_chassis_s *chassis)
     switch (chassis->mode_)
     {
     case RFL_CHASSIS_BEHAVIOR_NO_FORCE:
+        rflAngleUpdate(chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
         rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
         PID_clear(&((rfl_chassis_normal_pid_controller_s *)chassis->direction_controller)->angle_pid);
         chassis->set_wz_ = 0.0f;

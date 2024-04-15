@@ -249,7 +249,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         ((rm_motor_s *)(motor->driver))->effector_transmission_ratio = motor_config->effector_transmission_ratio;
         if (motor_config->type == RFL_MOTOR_RM_M2006)
             ((rm_motor_s *)(motor->driver))->torque_factor = RM_M2006_TORQUE_FACTOR;
-        if (motor_config->type == RFL_MOTOR_RM_M3508)
+        else if (motor_config->type == RFL_MOTOR_RM_M3508)
             ((rm_motor_s *)(motor->driver))->torque_factor = RM_M3508_TORQUE_FACTOR;
         else
             ((rm_motor_s *)(motor->driver))->torque_factor = 0.0f;

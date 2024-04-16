@@ -15,7 +15,7 @@
  * @param[in]      最小值
  * @retval         返回空
  */
-void rlfRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min)
+void rflRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min)
 {
     ramp_source_type->p_factor = p_factor;
     ramp_source_type->max_value = max;
@@ -32,7 +32,7 @@ void rlfRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float
  * @param[in]      滤波参数
  * @retval         返回空
  */
-float rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
+float rflRampCalc(ramp_function_source_t *ramp_source_type, float input)
 {
     ramp_source_type->input = input;
     if (ramp_source_type->input > ramp_source_type->max_value)
@@ -59,10 +59,10 @@ float rlfRampCalc(ramp_function_source_t *ramp_source_type, float input)
  * @param[in]      滤波参数
  * @retval         返回空
  */
-void rlfFirstOrderFilterInit(first_order_filter_type_t *first_order_filter_type, float frame_period, const float num[1])
+void rflFirstOrderFilterInit(first_order_filter_type_t *first_order_filter_type, float frame_period, const float num)
 {
     first_order_filter_type->frame_period = frame_period;
-    first_order_filter_type->num[0] = num[0];
+    first_order_filter_type->num = num;
     first_order_filter_type->input = 0.0f;
     first_order_filter_type->out = 0.0f;
 }
@@ -74,25 +74,25 @@ void rlfFirstOrderFilterInit(first_order_filter_type_t *first_order_filter_type,
  * @param[in]      间隔的时间，单位 s
  * @retval         返回空
  */
-void rlfFirstOrderFilterCali(first_order_filter_type_t *first_order_filter_type, float input)
+void rflFirstOrderFilterCali(first_order_filter_type_t *first_order_filter_type, float input)
 {
     first_order_filter_type->input = input;
     first_order_filter_type->out =
-        first_order_filter_type->num[0] / (first_order_filter_type->num[0] + first_order_filter_type->frame_period) *
+        first_order_filter_type->num / (first_order_filter_type->num + first_order_filter_type->frame_period) *
             first_order_filter_type->out +
-        first_order_filter_type->frame_period /
-            (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->input;
+        first_order_filter_type->frame_period / (first_order_filter_type->num + first_order_filter_type->frame_period) *
+            first_order_filter_type->input;
 }
 
 /**
- * @name rlfSlidingWindowFilterInit
+ * @name rflSlidingWindowFilterInit
  * @brief 滑动窗口滤波初始化
  * @param sliding_window_filter 滑动窗口滤波结构体
  * @param data_depth 数据宽度
  * @param wall_depth 墙壁宽度
  * @return uint8_t
  */
-uint8_t rlfSlidingWindowFilterInit(sliding_window_filter_s_t *sliding_window_filter, const uint8_t data_depth,
+uint8_t rflSlidingWindowFilterInit(sliding_window_filter_s_t *sliding_window_filter, const uint8_t data_depth,
                                    const uint8_t wall_depth)
 {
     if ((data_depth < (2 * wall_depth)) || (wall_depth < 1)) // 数据深度有误、墙壁宽度有误
@@ -123,13 +123,13 @@ uint8_t rlfSlidingWindowFilterInit(sliding_window_filter_s_t *sliding_window_fil
 }
 
 /**
- * @name rlfSlidingWindowFilterCalc
+ * @name rflSlidingWindowFilterCalc
  * @brief 滑动窗口滤波计算
  * @param sliding_window_filter 滑动窗口滤波结构体
  * @param input 输入的数据
  * @return float
  */
-float rlfSlidingWindowFilterCalc(sliding_window_filter_s_t *sliding_window_filter, float input)
+float rflSlidingWindowFilterCalc(sliding_window_filter_s_t *sliding_window_filter, float input)
 {
     // 缓存、和、窗数据数量
     float temp = 0.0f, sum = 0.0f;

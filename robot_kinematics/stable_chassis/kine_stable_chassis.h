@@ -34,8 +34,14 @@ typedef struct RflChassis
      * 2 - 底盘旋转角速度 逆时针为正 单位-rad/s */
     float speed_vector_[3];
 
-    /*参考坐标系下底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π 以此可以确定底盘控制坐标系*/
-    rfl_angle_s *control_vector;
+    /*惯性坐标系下用户设定的底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π
+     * 以此可以确定底盘控制坐标系*/
+    const rfl_angle_s *set_control_vector_;
+    /*参考系下用于直接参与计算的本地底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π
+     * 以此可以确定底盘控制坐标系*/
+    rfl_angle_s control_vector;
+    /*跟随模式下 设定的结构结构正方向相对于控制正方向的偏角 逆时针为正 范围 -π ~ π*/
+    rfl_angle_s follow_offset;
     /*设定的参考坐标系下底盘结构方向 以结构的正面朝向为X轴正方向 向上为Z轴正方向 范围 -π ~ π*/
     rfl_angle_s set_forward_vector;
     float set_vx_; /*设定的在底盘控制坐标系下的底盘前进后退速度 由用户设定 单位-m/s*/
@@ -83,6 +89,23 @@ extern void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config,
 extern void rflChassisUpdate(rfl_chassis_s *chassis);
 
 /**
+ * @brief 设定底盘行为模式
+ *
+ * @param chassis 底盘实体结构体指针
+ * @param mode 要设定的行为模式
+ */
+extern void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode);
+
+/**
+ * @brief 设定跟随模式下结构正方向相对于控制正方向的偏角
+ *
+ * @param chassis 底盘实体结构体指针
+ * @param angle_format 偏角的角度制
+ * @param angle_value 偏角的角度值
+ */
+extern void rflChassisSetFollowOffset(rfl_chassis_s *chassis, rfl_angle_format_e angle_format, float angle_value);
+
+/**
  * @brief 设定底盘速度
  *
  * @param chassis 底盘实体结构体指针
@@ -93,12 +116,12 @@ extern void rflChassisUpdate(rfl_chassis_s *chassis);
 extern void rflChassisSetSpeedVector(rfl_chassis_s *chassis, float vx, float vy, float wz);
 
 /**
- * @brief 设定底盘行为模式
+ * @brief 获取底盘当前模式
  *
  * @param chassis 底盘实体结构体指针
- * @param mode 要设定的行为模式
+ * @return float 底盘当前行为模式
  */
-extern void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode);
+extern rfl_chassis_behavior_e rflChassisGetMode(rfl_chassis_s *chassis);
 
 /**
  * @brief 获取底盘速度向量

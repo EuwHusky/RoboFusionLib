@@ -70,9 +70,9 @@ void rflChassisGetDefaultConfig(rfl_chassis_config_s *config, rfl_chassis_type_e
         break;
     }
 
-    config->reference_frame = RFL_CHASSIS_BODY_FRAME;
+    config->reference_frame = RFL_CHASSIS_INERTIAL_FRAME;
 
-    config->control_vector = NULL;
+    config->set_control_vector = NULL;
     config->direction_controller_type = RFL_CHASSIS_CONTROLLER_PID;
     config->direction_pid_param[0] = RFL_CHASSIS_DEFAULT_DIRECTION_PID_KP;
     config->direction_pid_param[1] = RFL_CHASSIS_DEFAULT_DIRECTION_PID_KI;
@@ -129,15 +129,17 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
     chassis->forward_vector_ = forward_vector;
     rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
 
-    if (chassis->reference_frame == RFL_CHASSIS_INERTIAL_FRAME)
+    if (chassis->reference_frame == RFL_CHASSIS_INERTIAL_FRAME && config->set_control_vector != NULL)
     {
-        chassis->control_vector = config->control_vector;
+        chassis->set_control_vector_ = config->set_control_vector;
+        rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->set_control_vector_->deg);
     }
     else
     {
-        chassis->control_vector = (rfl_angle_s *)malloc(sizeof(rfl_angle_s));
-        memset(chassis->control_vector, 0, sizeof(rfl_angle_s));
+        chassis->set_control_vector_ = NULL;
+        rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
     }
+    rflAngleUpdate(&chassis->follow_offset, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
 
     if (config->direction_controller_type == RFL_CHASSIS_CONTROLLER_PID)
     {
@@ -186,11 +188,44 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
  */
 void rflChassisUpdate(rfl_chassis_s *chassis)
 {
+    if (chassis->reference_frame == RFL_CHASSIS_INERTIAL_FRAME && chassis->set_control_vector_ != NULL)
+        rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE,
+                       rflFloatLoopConstrain(chassis->set_control_vector_->deg, -DEG_PI, DEG_PI));
+    else
+        rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
+
     chassis_update_status(chassis);
 
     chassis_update_wz_set(chassis);
 
     chassis_update_motor_control(chassis);
+}
+
+/**
+ * @brief 设定底盘行为模式
+ *
+ * @param chassis 底盘实体结构体指针
+ * @param mode 要设定的行为模式
+ */
+void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode)
+{
+    // 机体系下FREEZE模式等价于FOLLOW模式
+    if (chassis->reference_frame == RFL_CHASSIS_CONTROL_FRAME && mode == RFL_CHASSIS_BEHAVIOR_FREEZE)
+        return;
+
+    chassis->mode_ = mode;
+}
+
+/**
+ * @brief 设定跟随模式下结构正方向相对于控制正方向的偏角
+ *
+ * @param chassis 底盘实体结构体指针
+ * @param angle_format 偏角的角度制
+ * @param angle_value 偏角的角度值
+ */
+void rflChassisSetFollowOffset(rfl_chassis_s *chassis, rfl_angle_format_e angle_format, float angle_value)
+{
+    rflAngleUpdate(&chassis->follow_offset, angle_format, angle_value);
 }
 
 /**
@@ -210,14 +245,14 @@ void rflChassisSetSpeedVector(rfl_chassis_s *chassis, float vx, float vy, float 
 }
 
 /**
- * @brief 设定底盘行为模式
+ * @brief 获取底盘当前模式
  *
  * @param chassis 底盘实体结构体指针
- * @param mode 要设定的行为模式
+ * @return float 底盘当前行为模式
  */
-void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode)
+rfl_chassis_behavior_e rflChassisGetMode(rfl_chassis_s *chassis)
 {
-    chassis->mode_ = mode;
+    return chassis->mode_;
 }
 
 /**
@@ -355,11 +390,11 @@ static void chassis_update_status(rfl_chassis_s *chassis)
                         4.0f;
     }
 
-    float cos_theta = cosf(chassis->control_vector->rad - chassis->forward_vector_->rad);
-    float sin_theta = sinf(chassis->control_vector->rad - chassis->forward_vector_->rad);
+    float cos_theta = cosf(chassis->control_vector.rad - chassis->forward_vector_->rad);
+    float sin_theta = sinf(chassis->control_vector.rad - chassis->forward_vector_->rad);
 
-    chassis->speed_vector_[0] = cos_theta * body_frame_vx - sin_theta * body_frame_vy;
-    chassis->speed_vector_[1] = sin_theta * body_frame_vx + cos_theta * body_frame_vy;
+    chassis->speed_vector_[0] = cos_theta * body_frame_vx + sin_theta * body_frame_vy;
+    chassis->speed_vector_[1] = -sin_theta * body_frame_vx + cos_theta * body_frame_vy;
     chassis->speed_vector_[2] = body_frame_wz;
 }
 
@@ -373,25 +408,28 @@ static void chassis_update_wz_set(rfl_chassis_s *chassis)
     switch (chassis->mode_)
     {
     case RFL_CHASSIS_BEHAVIOR_NO_FORCE:
-        rflAngleUpdate(chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
         rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
         PID_clear(&((rfl_chassis_normal_pid_controller_s *)chassis->direction_controller)->angle_pid);
         chassis->set_wz_ = 0.0f;
         break;
     case RFL_CHASSIS_BEHAVIOR_FOLLOW_CONTROL:
-        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->control_vector->deg);
+        rflAngleUpdate(
+            &chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE,
+            rflFloatLoopConstrain(chassis->control_vector.deg + chassis->follow_offset.deg, -DEG_PI, DEG_PI));
         chassis->set_wz_ = PID_calc(
             &((rfl_chassis_normal_pid_controller_s *)(chassis->direction_controller))->angle_pid, 0.0f,
             rflFloatLoopConstrain(chassis->set_forward_vector.deg - chassis->forward_vector_->deg, -DEG_PI, DEG_PI));
         break;
     case RFL_CHASSIS_BEHAVIOR_FREEZE:
-        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
-        PID_clear(&((rfl_chassis_normal_pid_controller_s *)chassis->direction_controller)->angle_pid);
+        // chassis->set_wz_ = PID_calc(
+        //     &((rfl_chassis_normal_pid_controller_s *)(chassis->direction_controller))->angle_pid, 0.0f,
+        //     rflFloatLoopConstrain(chassis->set_forward_vector.deg - chassis->forward_vector_->deg, -DEG_PI, DEG_PI));
         chassis->set_wz_ = 0.0f;
         break;
     case RFL_CHASSIS_BEHAVIOR_SPIN:
         rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
         // 角速度由用户设定
+        chassis->set_wz_ = 0.0f;
         break;
     default:
         break;
@@ -429,11 +467,11 @@ static void chassis_update_motor_control(rfl_chassis_s *chassis)
     }
     else
     {
-        float cos_theta = cosf(chassis->forward_vector_->rad - chassis->control_vector->rad);
-        float sin_theta = sinf(chassis->forward_vector_->rad - chassis->control_vector->rad);
+        float cos_theta = cosf(chassis->forward_vector_->rad - chassis->control_vector.rad);
+        float sin_theta = sinf(chassis->forward_vector_->rad - chassis->control_vector.rad);
 
-        float body_frame_set_vx = cos_theta * chassis->set_vx_ - sin_theta * chassis->set_vy_;
-        float body_frame_set_vy = sin_theta * chassis->set_vx_ + cos_theta * chassis->set_vy_;
+        float body_frame_set_vx = cos_theta * chassis->set_vx_ + sin_theta * chassis->set_vy_;
+        float body_frame_set_vy = -sin_theta * chassis->set_vx_ + cos_theta * chassis->set_vy_;
 
         if (chassis->type == RFL_CHASSIS_MECANUM)
         {
@@ -498,10 +536,10 @@ static void chassis_update_motor_control(rfl_chassis_s *chassis)
             else if (chassis->mode_ == RFL_CHASSIS_BEHAVIOR_FREEZE)
             {
                 /*舵向姿态跟随控制系 快速响应前后移动*/
-                chassis->motor_output_[4] = chassis->control_vector->rad;
-                chassis->motor_output_[5] = chassis->control_vector->rad;
-                chassis->motor_output_[6] = chassis->control_vector->rad;
-                chassis->motor_output_[7] = chassis->control_vector->rad;
+                chassis->motor_output_[4] = chassis->control_vector.rad;
+                chassis->motor_output_[5] = chassis->control_vector.rad;
+                chassis->motor_output_[6] = chassis->control_vector.rad;
+                chassis->motor_output_[7] = chassis->control_vector.rad;
             }
 
             /* 舵向电机转角劣化 当舵向单次转角超过45度时 通过反转轮子速度方向的方式使得所需转角重新小于45度 */

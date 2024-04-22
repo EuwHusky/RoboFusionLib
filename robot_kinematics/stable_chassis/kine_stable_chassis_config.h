@@ -30,8 +30,8 @@ typedef enum RflChassisType
  */
 typedef enum RflChassisFrame
 {
-    RFL_CHASSIS_BODY_FRAME = 0, /*机体坐标系 等价于云台坐标系 控制坐标系*/
-    RFL_CHASSIS_INERTIAL_FRAME, /*惯性坐标系 既IMU偏转地理坐标系*/
+    RFL_CHASSIS_INERTIAL_FRAME = 0, /*惯性坐标系 既IMU偏转地理坐标系*/
+    RFL_CHASSIS_CONTROL_FRAME,      /*控制坐标系*/
 } rfl_chassis_frame_e;
 
 /**
@@ -70,8 +70,9 @@ typedef struct RflChassisConfig
 
     rfl_chassis_frame_e reference_frame; /*底盘结构参考系*/
 
-    /*参考坐标系下底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π 以此可以确定底盘控制坐标系*/
-    rfl_angle_s *control_vector;
+    /*惯性坐标系下用户设定的底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π
+     * 以此可以确定底盘控制坐标系*/
+    const rfl_angle_s *set_control_vector;
     rfl_chassis_direction_controller_type_e direction_controller_type; /*底盘方向控制器类型*/
     float direction_pid_param[5];                                      /*底盘方向PID控制器参数*/
 } rfl_chassis_config_s;

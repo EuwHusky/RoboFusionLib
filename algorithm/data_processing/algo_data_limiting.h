@@ -14,6 +14,11 @@
 extern void rflAbsLimit(float *num, float limit);
 
 /**
+ * @brief UINT32限幅函数
+ */
+extern uint32_t rflUint32Constrain(uint32_t input, uint32_t min_value, uint32_t max_value);
+
+/**
  * @brief 单精度浮点型限幅函数
  */
 extern float rflFloatConstrain(float input, float min_value, float max_value);

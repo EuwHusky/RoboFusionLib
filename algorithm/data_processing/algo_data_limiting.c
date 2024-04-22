@@ -16,6 +16,28 @@ void rflAbsLimit(float *num, float limit)
 }
 
 /**
+ * @brief UINT32限幅函数
+ */
+uint32_t rflUint32Constrain(uint32_t input, uint32_t min_value, uint32_t max_value)
+{
+    if (max_value < min_value)
+    {
+        return input;
+    }
+
+    if (input > max_value)
+    {
+        return max_value;
+    }
+    else if (input < min_value)
+    {
+        return min_value;
+    }
+
+    return input;
+}
+
+/**
  * @brief 单精度浮点型限幅函数
  */
 float rflFloatConstrain(float input, float min_value, float max_value)

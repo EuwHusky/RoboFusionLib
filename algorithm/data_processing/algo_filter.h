@@ -5,11 +5,11 @@
 
 typedef struct
 {
-    float input;     // 输入数据
-    float out;       // 输出数据
-    float min_value; // 限幅最小值
-    float max_value; // 限幅最大值
-    float p_factor;  // 时间间隔
+    float target;       // 目标值
+    float out;          // 输出数据
+    float min_value;    // 限幅最小值
+    float max_value;    // 限幅最大值
+    float frame_period; // 时间间隔
 } ramp_function_source_t;
 
 typedef struct
@@ -36,21 +36,21 @@ typedef struct
  * @brief          斜波函数初始化
  * @author         RM
  * @param[in]      斜波函数结构体
- * @param[in]      间隔的时间，单位 s
+ * @param[in]      间隔的时间 单位 s
  * @param[in]      最大值
  * @param[in]      最小值
  * @retval         返回空
  */
-extern void rflRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min);
+extern void rflRampInit(ramp_function_source_t *ramp_source_type, float frame_period, float max, float min);
 /**
- * @brief          斜波函数计算，根据输入的值进行叠加， 输入单位为 /s 即一秒后增加输入的值
+ * @brief          斜波函数计算
  * @author         RM
  * @param[in]      斜波函数结构体
- * @param[in]      输入值
- * @param[in]      滤波参数
- * @retval         返回空
+ * @param[in]      变化速率 一秒内变化的值
+ * @param[in]      目标值
+ * @retval         斜坡函数输出值
  */
-extern float rflRampCalc(ramp_function_source_t *ramp_source_type, float input);
+extern float rflRampCalc(ramp_function_source_t *ramp_source_type, float speed, float target);
 /**
  * @brief          一阶低通滤波初始化
  * @author         RM

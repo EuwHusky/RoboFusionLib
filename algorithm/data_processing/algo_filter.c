@@ -15,38 +15,48 @@
  * @param[in]      最小值
  * @retval         返回空
  */
-void rflRampInit(ramp_function_source_t *ramp_source_type, float p_factor, float max, float min)
+void rflRampInit(ramp_function_source_t *ramp_source_type, float frame_period, float max, float min)
 {
-    ramp_source_type->p_factor = p_factor;
+    ramp_source_type->frame_period = frame_period;
     ramp_source_type->max_value = max;
     ramp_source_type->min_value = min;
-    ramp_source_type->input = 0.0f;
+    ramp_source_type->target = 0.0f;
     ramp_source_type->out = 0.0f;
 }
 
 /**
- * @brief          斜波函数计算，根据输入的值进行叠加， 输入单位为 /s 即一秒后增加输入的值
+ * @brief          斜波函数计算
  * @author         RM
  * @param[in]      斜波函数结构体
- * @param[in]      输入值
- * @param[in]      滤波参数
- * @retval         返回空
+ * @param[in]      变化速率 一秒内变化的值
+ * @param[in]      目标值
+ * @retval         斜坡函数输出值
  */
-float rflRampCalc(ramp_function_source_t *ramp_source_type, float input)
+float rflRampCalc(ramp_function_source_t *ramp_source_type, float speed, float target)
 {
-    ramp_source_type->input = input;
-    if (ramp_source_type->input > ramp_source_type->max_value)
+    if (target > ramp_source_type->max_value)
     {
-        ramp_source_type->input = ramp_source_type->max_value;
+        target = ramp_source_type->max_value;
     }
-    else if (ramp_source_type->input < ramp_source_type->min_value)
+    else if (target < ramp_source_type->min_value)
     {
-        ramp_source_type->input = ramp_source_type->min_value;
+        target = ramp_source_type->min_value;
     }
 
-    ramp_source_type->out += (ramp_source_type->input - ramp_source_type->out) * ramp_source_type->p_factor;
+    float step = speed * ramp_source_type->frame_period;
+    float delta = target - ramp_source_type->out;
 
-    ramp_source_type->out = rflDeadZoneZero(ramp_source_type->out, 0.00001f);
+    if (fabsf(delta) > step)
+    {
+        if (delta > 0)
+            ramp_source_type->out = ramp_source_type->out + step;
+        else if (delta < 0)
+            ramp_source_type->out = ramp_source_type->out - step;
+    }
+    else
+    {
+        ramp_source_type->out = target;
+    }
 
     return ramp_source_type->out;
 }

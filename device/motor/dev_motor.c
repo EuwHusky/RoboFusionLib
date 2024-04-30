@@ -570,7 +570,7 @@ void rflMotorSetMode(rfl_motor_s *motor, rfl_motor_control_mode_e mode)
             motor->mode_ = mode;
             PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->angle_pid);
             PID_clear(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid);
-            motor->control_output_ = motor->set_speed_ = motor->max_speed_ = 0.0f;
+            motor->control_output_ = motor->set_speed_ = 0.0f;
             rflAngleUpdate(&motor->track_angle, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
             rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg);
         }

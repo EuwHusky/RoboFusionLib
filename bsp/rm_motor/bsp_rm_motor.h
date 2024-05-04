@@ -107,9 +107,10 @@ typedef struct RmMotor
     int16_t min_rotor_turns;
     int32_t ecd_angle;
 
-    float torque;    // N*M 电机转矩
-    float speed;     // rad/s 末端执行器转速
-    float deg_angle; // degree 末端执行器角度
+    float deg_angle;     // degree 末端执行器角度
+    float speed;         // rad/s 末端执行器转速
+    float torque;        // N*M 电机转矩
+    uint8_t temperature; // °C 电机温度
 
 } rm_motor_s;
 

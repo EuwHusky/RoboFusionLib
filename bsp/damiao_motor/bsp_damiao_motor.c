@@ -14,9 +14,10 @@
 
 #include "algo_value.h"
 
-static uint8_t data_enable[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC};    // 电机使能命令
-static uint8_t data_failure[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD};   // 电机失能命令
-static uint8_t data_save_zero[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE}; // 电机保存零点命令
+static uint8_t data_enable[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC};     // 电机使能命令
+static uint8_t data_failure[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD};    // 电机失能命令
+static uint8_t data_save_zero[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE};  // 电机保存零点命令
+static uint8_t data_save_clean[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB}; // 电机清除错误命令
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 static CAN_Type *damiao_motor_get_wpie_hpm6750_can_id(uint8_t can_ordinal)
@@ -75,12 +76,13 @@ void damiao_motor_update_status(damiao_motor_s *damiao_motor)
     damiao_motor->position = rflUintToFloat(feedback[0], -damiao_motor->p_max, damiao_motor->p_max, 16);
     damiao_motor->velocity = rflUintToFloat(feedback[1], -damiao_motor->v_max, damiao_motor->v_max, 12);
     damiao_motor->torque = rflUintToFloat(feedback[2], -damiao_motor->t_max, damiao_motor->t_max, 12);
+    damiao_motor->temperature = damiao_motor->can_rx_data[7];
 }
 
 void damiao_motor_enable(damiao_motor_s *damiao_motor, bool enable)
 {
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-    for (uint16_t i = 0; i < 1000; i++) // 检查发送缓冲区是否已满，满则循环延时
+    for (uint16_t i = 0; i < 10000; i++) // 检查发送缓冲区是否已满，满则循环延时
         if (!can_is_secondary_transmit_buffer_full(damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal)))
             break;
 #endif
@@ -110,7 +112,7 @@ void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos,
     damiao_motor->can_tx_data[7] = *(vbuf + 3);
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-    for (uint16_t i = 0; i < 1000; i++) // 检查发送缓冲区是否已满，满则循环延时
+    for (uint16_t i = 0; i < 10000; i++) // 检查发送缓冲区是否已满，满则循环延时
         if (!can_is_secondary_transmit_buffer_full(damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal)))
             break;
 #endif

@@ -38,6 +38,7 @@ typedef struct DamiaoMotor
     float position;
     float velocity;
     float torque;
+    uint8_t temperature; // 转子线圈温度
 
 } damiao_motor_s;
 

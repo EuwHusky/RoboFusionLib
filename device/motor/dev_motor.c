@@ -329,6 +329,8 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         else
             rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
 
+        motor->temperature_ = (float)(((rm_motor_s *)(motor->driver))->temperature);
+
         break;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
@@ -368,6 +370,8 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
             rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_RADIAN, ((damiao_motor_s *)(motor->driver))->position);
         else
             rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
+
+        motor->temperature_ = (float)(((damiao_motor_s *)(motor->driver))->temperature);
 
         break;
 #endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
@@ -723,6 +727,13 @@ float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
         return motor->angle_.rad;
 
     return 0.0f;
+}
+/**
+ * @brief 获取电机当前温度
+ */
+float rflMotorGetTemperature(rfl_motor_s *motor)
+{
+    return motor->temperature_;
 }
 /**
  * @brief 获取电机当前输出

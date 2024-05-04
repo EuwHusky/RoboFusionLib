@@ -92,6 +92,9 @@ void rm_motor_update_status(rm_motor_s *rm_motor, uint8_t control_mode, uint8_t 
 
     // 计算电机转矩
     rm_motor->torque = (float)rm_motor->feedback_.given_current * rm_motor->torque_factor;
+
+    // 计算电机温度
+    rm_motor->temperature = rm_motor->feedback_.temperate;
 }
 
 void rm_motor_reset_angle(rm_motor_s *rm_motor, float deg_angle)

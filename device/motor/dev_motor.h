@@ -46,6 +46,8 @@ typedef struct RflMotor
 
     rfl_angle_s angle_; // 末端执行器角度 逆时针为正
 
+    float temperature_; // 电机温度 单位 °C
+
     const float *external_speed;       // 外部速度 逆时针为正 单位 rad * s^-1
     const rfl_angle_s *external_angle; // 外部角度 逆时针为正
 
@@ -132,6 +134,10 @@ extern float rflMotorGetSpeed(rfl_motor_s *motor);
  * @brief 获取电机当前角度
  */
 extern float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
+/**
+ * @brief 获取电机当前温度
+ */
+extern float rflMotorGetTemperature(rfl_motor_s *motor);
 /**
  * @brief 获取电机当前输出
  */

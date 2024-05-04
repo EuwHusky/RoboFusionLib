@@ -19,22 +19,6 @@ static uint8_t data_failure[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD
 static uint8_t data_save_zero[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE};  // 电机保存零点命令
 static uint8_t data_save_clean[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB}; // 电机清除错误命令
 
-#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-static CAN_Type *damiao_motor_get_wpie_hpm6750_can_id(uint8_t can_ordinal)
-{
-    if (can_ordinal == 1)
-        return BOARD_CAN1;
-    else if (can_ordinal == 2)
-        return BOARD_CAN2;
-    else if (can_ordinal == 3)
-        return BOARD_CAN3;
-    else if (can_ordinal == 4)
-        return BOARD_CAN4;
-    else
-        return NULL;
-}
-#endif
-
 static uint16_t damiao_motor_get_mode_id_set(damiao_motor_mode_e mode)
 {
     return (mode == DAMIAO_MOTOR_MODE_MIT)
@@ -81,11 +65,6 @@ void damiao_motor_update_status(damiao_motor_s *damiao_motor)
 
 void damiao_motor_enable(damiao_motor_s *damiao_motor, bool enable)
 {
-#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-    for (uint16_t i = 0; i < 10000; i++) // 检查发送缓冲区是否已满，满则循环延时
-        if (!can_is_secondary_transmit_buffer_full(damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal)))
-            break;
-#endif
     rflCanSendData(damiao_motor->can_ordinal,
                    damiao_motor_get_mode_id_set(damiao_motor->mode) + damiao_motor->slave_can_id,
                    enable ? data_enable : data_failure);
@@ -111,11 +90,6 @@ void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos,
     damiao_motor->can_tx_data[6] = *(vbuf + 2);
     damiao_motor->can_tx_data[7] = *(vbuf + 3);
 
-#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
-    for (uint16_t i = 0; i < 10000; i++) // 检查发送缓冲区是否已满，满则循环延时
-        if (!can_is_secondary_transmit_buffer_full(damiao_motor_get_wpie_hpm6750_can_id(damiao_motor->can_ordinal)))
-            break;
-#endif
     rflCanSendData(damiao_motor->can_ordinal, CONTROL_MODE_ID_SET_POS_SPEED + damiao_motor->slave_can_id,
                    damiao_motor->can_tx_data);
 #if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD

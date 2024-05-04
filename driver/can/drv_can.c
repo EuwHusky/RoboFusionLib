@@ -17,6 +17,10 @@
 #define RFL_CAN_NUM RFL_CORE_RM_C_BORAD_CAN_NUM
 #endif
 
+#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
+static CAN_Type *get_wpie_hpm6750_can_id(uint8_t can_ordinal);
+#endif
+
 static rfl_can_rx_msg_box_s *rx_message_boxes = NULL;
 
 void rfl_can_rx_message_boxes_init(void)
@@ -102,6 +106,9 @@ void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8])
     tx_buf.dlc = can_payload_size_8;
     tx_buf.id = can_id;
     memcpy(tx_buf.data, tx_data, 8 * sizeof(uint8_t));
+    for (uint16_t i = 0; i < 10000; i++) // 检查发送缓冲区是否已满，满则循环延时
+        if (!can_is_secondary_transmit_buffer_full(get_wpie_hpm6750_can_id(can_ordinal)))
+            break;
     if (can_ordinal == 1)
         can_send_message_nonblocking(BOARD_CAN1, &tx_buf);
     else if (can_ordinal == 2)
@@ -354,5 +361,21 @@ void rflRmMotorControl(uint8_t can_ordinal, uint32_t can_id, int16_t motor1, int
 
     rflCanSendData(can_ordinal, can_id, can_send_data[can_ordinal]);
 }
+
+#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
+static CAN_Type *get_wpie_hpm6750_can_id(uint8_t can_ordinal)
+{
+    if (can_ordinal == 1)
+        return HPM_CAN0;
+    else if (can_ordinal == 2)
+        return HPM_CAN1;
+    else if (can_ordinal == 3)
+        return HPM_CAN2;
+    else if (can_ordinal == 4)
+        return HPM_CAN3;
+    else
+        return NULL;
+}
+#endif
 
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */

@@ -6,8 +6,8 @@
 
 // 定义片选引脚port和pin
 #if (RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750)
-uint32_t group_of_cs_ports[RFL_DEV_ENCODER_MA600_USED_NUM] = {GPIO_DO_GPIOA};
-uint8_t group_of_cs_pins[RFL_DEV_ENCODER_MA600_USED_NUM] = {6};
+uint32_t group_of_cs_ports[RFL_DEV_ENCODER_MA600_USED_NUM] = {GPIO_DO_GPIOE};
+uint8_t group_of_cs_pins[RFL_DEV_ENCODER_MA600_USED_NUM] = {3};
 
 #elif (RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD)
 

@@ -73,6 +73,15 @@ void damiao_motor_enable(damiao_motor_s *damiao_motor, bool enable)
 #endif
 }
 
+void damiao_motor_save_zero(damiao_motor_s *damiao_motor)
+{
+    rflCanSendData(damiao_motor->can_ordinal,
+                   damiao_motor_get_mode_id_set(damiao_motor->mode) + damiao_motor->slave_can_id, data_save_zero);
+#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
+    damiao_motor_control_delay(1);
+#endif
+}
+
 void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos, float set_vel)
 {
     set_pos *= damiao_motor->is_reversed ? -1.0f : 1.0f;

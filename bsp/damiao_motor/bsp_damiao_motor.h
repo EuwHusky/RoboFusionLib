@@ -49,6 +49,8 @@ extern void damiao_motor_update_status(damiao_motor_s *damiao_motor);
 
 extern void damiao_motor_enable(damiao_motor_s *damiao_motor, bool enable);
 
+extern void damiao_motor_save_zero(damiao_motor_s *damiao_motor);
+
 extern void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos, float set_vel);
 
 #endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */

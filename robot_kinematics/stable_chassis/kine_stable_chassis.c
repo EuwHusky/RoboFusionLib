@@ -95,7 +95,7 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
     memset(chassis, 0, sizeof(rfl_chassis_s));
 
     chassis->type = config->type;
-    chassis->mode_ = config->mode;
+    chassis->behavior = config->mode;
 
     switch (config->type)
     {
@@ -126,17 +126,17 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
     }
 
     chassis->reference_frame = config->reference_frame;
-    chassis->forward_vector_ = forward_vector;
-    rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
+    chassis->forward_vector = forward_vector;
+    rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector->deg);
 
     if (chassis->reference_frame == RFL_CHASSIS_INERTIAL_FRAME && config->set_control_vector != NULL)
     {
-        chassis->set_control_vector_ = config->set_control_vector;
-        rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->set_control_vector_->deg);
+        chassis->set_control_vector = config->set_control_vector;
+        rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->set_control_vector->deg);
     }
     else
     {
-        chassis->set_control_vector_ = NULL;
+        chassis->set_control_vector = NULL;
         rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
     }
     rflAngleUpdate(&chassis->follow_offset, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
@@ -172,13 +172,12 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
     }
 
     chassis->motor_feedback = motor_feedback;
-    chassis->motor_output_ = (float *)malloc(chassis->motor_num * sizeof(float));
-    chassis->no_force_the_motor_ = (bool *)malloc(chassis->motor_num * sizeof(bool));
+    chassis->motor_output = (float *)malloc(chassis->motor_num * sizeof(float));
 
     if (config->type == RFL_CHASSIS_DUAL_STEER || config->type == RFL_CHASSIS_FOUR_STEER)
-        chassis->reverse_steer_chassis_driving_motor_output = (bool *)malloc(chassis->motor_num / 2 * sizeof(bool));
+        chassis->reverse_motor_output = (bool *)malloc(chassis->motor_num / 2 * sizeof(bool));
     else
-        chassis->reverse_steer_chassis_driving_motor_output = NULL;
+        chassis->reverse_motor_output = NULL;
 }
 
 /**
@@ -188,9 +187,9 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
  */
 void rflChassisUpdate(rfl_chassis_s *chassis)
 {
-    if (chassis->reference_frame == RFL_CHASSIS_INERTIAL_FRAME && chassis->set_control_vector_ != NULL)
+    if (chassis->reference_frame == RFL_CHASSIS_INERTIAL_FRAME && chassis->set_control_vector != NULL)
         rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE,
-                       rflFloatLoopConstrain(chassis->set_control_vector_->deg, -DEG_PI, DEG_PI));
+                       rflFloatLoopConstrain(chassis->set_control_vector->deg, -DEG_PI, DEG_PI));
     else
         rflAngleUpdate(&chassis->control_vector, RFL_ANGLE_FORMAT_DEGREE, 0.0f);
 
@@ -213,7 +212,7 @@ void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode)
     if (chassis->reference_frame == RFL_CHASSIS_CONTROL_FRAME && mode == RFL_CHASSIS_BEHAVIOR_FREEZE)
         return;
 
-    chassis->mode_ = mode;
+    chassis->behavior = mode;
 }
 
 /**
@@ -238,10 +237,10 @@ void rflChassisSetFollowOffset(rfl_chassis_s *chassis, rfl_angle_format_e angle_
  */
 void rflChassisSetSpeedVector(rfl_chassis_s *chassis, float vx, float vy, float wz)
 {
-    chassis->set_vx_ = vx;
-    chassis->set_vy_ = vy;
-    if (chassis->mode_ == RFL_CHASSIS_BEHAVIOR_SPIN)
-        chassis->set_wz_ = wz;
+    chassis->set_vx = vx;
+    chassis->set_vy = vy;
+    if (chassis->behavior == RFL_CHASSIS_BEHAVIOR_SPIN)
+        chassis->set_wz = wz;
 }
 
 /**
@@ -250,9 +249,9 @@ void rflChassisSetSpeedVector(rfl_chassis_s *chassis, float vx, float vy, float 
  * @param chassis 底盘实体结构体指针
  * @return float 底盘当前行为模式
  */
-rfl_chassis_behavior_e rflChassisGetMode(rfl_chassis_s *chassis)
+rfl_chassis_behavior_e rflChassisGetBehavior(rfl_chassis_s *chassis)
 {
-    return chassis->mode_;
+    return chassis->behavior;
 }
 
 /**
@@ -263,7 +262,7 @@ rfl_chassis_behavior_e rflChassisGetMode(rfl_chassis_s *chassis)
  */
 float *rflChassisGetSpeedVector(rfl_chassis_s *chassis)
 {
-    return chassis->speed_vector_;
+    return chassis->speed_vector;
 }
 
 /**
@@ -274,18 +273,7 @@ float *rflChassisGetSpeedVector(rfl_chassis_s *chassis)
  */
 float *rflChassisGetMotorOutputArray(rfl_chassis_s *chassis)
 {
-    return chassis->motor_output_;
-}
-
-/**
- * @brief 获取底盘电机组当前模式
- *
- * @param chassis 底盘实体结构体指针
- * @return float* 底盘电机组模式
- */
-bool *rflChassisGetMotorModeArray(rfl_chassis_s *chassis)
-{
-    return chassis->no_force_the_motor_;
+    return chassis->motor_output;
 }
 
 /**
@@ -390,12 +378,12 @@ static void chassis_update_status(rfl_chassis_s *chassis)
                         4.0f;
     }
 
-    float cos_theta = cosf(chassis->control_vector.rad - chassis->forward_vector_->rad);
-    float sin_theta = sinf(chassis->control_vector.rad - chassis->forward_vector_->rad);
+    float cos_theta = cosf(chassis->control_vector.rad - chassis->forward_vector->rad);
+    float sin_theta = sinf(chassis->control_vector.rad - chassis->forward_vector->rad);
 
-    chassis->speed_vector_[0] = cos_theta * body_frame_vx + sin_theta * body_frame_vy;
-    chassis->speed_vector_[1] = -sin_theta * body_frame_vx + cos_theta * body_frame_vy;
-    chassis->speed_vector_[2] = body_frame_wz;
+    chassis->speed_vector[0] = cos_theta * body_frame_vx + sin_theta * body_frame_vy;
+    chassis->speed_vector[1] = -sin_theta * body_frame_vx + cos_theta * body_frame_vy;
+    chassis->speed_vector[2] = body_frame_wz;
 }
 
 /**
@@ -405,33 +393,35 @@ static void chassis_update_status(rfl_chassis_s *chassis)
  */
 static void chassis_update_wz_set(rfl_chassis_s *chassis)
 {
-    switch (chassis->mode_)
+    switch (chassis->behavior)
     {
     case RFL_CHASSIS_BEHAVIOR_NO_FORCE:
-        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
+        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector->deg);
         PID_clear(&((rfl_chassis_normal_pid_controller_s *)chassis->direction_controller)->angle_pid);
-        chassis->set_wz_ = 0.0f;
+        chassis->set_wz = 0.0f;
         break;
     case RFL_CHASSIS_BEHAVIOR_FOLLOW_CONTROL:
         rflAngleUpdate(
             &chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE,
             rflFloatLoopConstrain(chassis->control_vector.deg + chassis->follow_offset.deg, -DEG_PI, DEG_PI));
-        chassis->set_wz_ = PID_calc(
+        chassis->set_wz = PID_calc(
             &((rfl_chassis_normal_pid_controller_s *)(chassis->direction_controller))->angle_pid, 0.0f,
-            rflFloatLoopConstrain(chassis->set_forward_vector.deg - chassis->forward_vector_->deg, -DEG_PI, DEG_PI));
+            rflFloatLoopConstrain(chassis->set_forward_vector.deg - chassis->forward_vector->deg, -DEG_PI, DEG_PI));
         break;
     case RFL_CHASSIS_BEHAVIOR_FREEZE:
-        // chassis->set_wz_ = PID_calc(
+        // chassis->set_wz = PID_calc(
         //     &((rfl_chassis_normal_pid_controller_s *)(chassis->direction_controller))->angle_pid, 0.0f,
-        //     rflFloatLoopConstrain(chassis->set_forward_vector.deg - chassis->forward_vector_->deg, -DEG_PI, DEG_PI));
-        chassis->set_wz_ = 0.0f;
+        //     rflFloatLoopConstrain(chassis->set_forward_vector.deg - chassis->forward_vector->deg, -DEG_PI, DEG_PI));
+        chassis->set_wz = 0.0f;
         break;
     case RFL_CHASSIS_BEHAVIOR_SPIN:
-        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector_->deg);
+        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector->deg);
         // 角速度由用户设定
-        chassis->set_wz_ = 0.0f;
         break;
     default:
+        rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector->deg);
+        PID_clear(&((rfl_chassis_normal_pid_controller_s *)chassis->direction_controller)->angle_pid);
+        chassis->set_wz = 0.0f;
         break;
     }
 }
@@ -443,56 +433,55 @@ static void chassis_update_wz_set(rfl_chassis_s *chassis)
  */
 static void chassis_update_motor_control(rfl_chassis_s *chassis)
 {
-    if (chassis->mode_ == RFL_CHASSIS_BEHAVIOR_NO_FORCE)
+    if (chassis->behavior == RFL_CHASSIS_BEHAVIOR_NO_FORCE)
     {
         if (chassis->type == RFL_CHASSIS_DUAL_STEER || chassis->type == RFL_CHASSIS_FOUR_STEER)
         {
-            for (uint8_t i = 0; i < chassis->motor_num / 2; i++) // 驱动电机速度置0
+            for (uint8_t i = 0; i < chassis->motor_num / 2; i++)
             {
-                chassis->motor_output_[i] = 0.0f;
-            }
-            for (uint8_t i = 0; i < chassis->motor_num / 2; i++) // 舵向电机角度不变
-            {
-                chassis->motor_output_[i + chassis->motor_num / 2] =
-                    chassis->motor_feedback[i + chassis->motor_num / 2];
+                // 驱动电机速度置0
+                chassis->motor_output[i] = 0.0f;
+
+                // 舵向电机角度不变
+                chassis->motor_output[i + chassis->motor_num / 2] = chassis->motor_feedback[i + chassis->motor_num / 2];
             }
         }
         else
         {
             for (uint8_t i = 0; i < 4; i++)
             {
-                chassis->motor_output_[i] = 0.0f;
+                chassis->motor_output[i] = 0.0f;
             }
         }
     }
     else
     {
-        float cos_theta = cosf(chassis->forward_vector_->rad - chassis->control_vector.rad);
-        float sin_theta = sinf(chassis->forward_vector_->rad - chassis->control_vector.rad);
+        float cos_theta = cosf(chassis->forward_vector->rad - chassis->control_vector.rad);
+        float sin_theta = sinf(chassis->forward_vector->rad - chassis->control_vector.rad);
 
-        float body_frame_set_vx = cos_theta * chassis->set_vx_ + sin_theta * chassis->set_vy_;
-        float body_frame_set_vy = -sin_theta * chassis->set_vx_ + cos_theta * chassis->set_vy_;
+        float body_frame_set_vx = cos_theta * chassis->set_vx + sin_theta * chassis->set_vy;
+        float body_frame_set_vy = -sin_theta * chassis->set_vx + cos_theta * chassis->set_vy;
 
         if (chassis->type == RFL_CHASSIS_MECANUM)
         {
-            float wheel_speed_by_wz = chassis->set_wz_ *
+            float wheel_speed_by_wz = chassis->set_wz *
                                       (((rfl_chassis_mecanum_parameter_s *)chassis->parameter)->length +
                                        ((rfl_chassis_mecanum_parameter_s *)chassis->parameter)->width) *
                                       0.5f;
-            chassis->motor_output_[0] = body_frame_set_vx - body_frame_set_vy - wheel_speed_by_wz;
-            chassis->motor_output_[1] = body_frame_set_vx + body_frame_set_vy - wheel_speed_by_wz;
-            chassis->motor_output_[2] = body_frame_set_vx - body_frame_set_vy + wheel_speed_by_wz;
-            chassis->motor_output_[3] = body_frame_set_vx + body_frame_set_vy + wheel_speed_by_wz;
+            chassis->motor_output[0] = body_frame_set_vx - body_frame_set_vy - wheel_speed_by_wz;
+            chassis->motor_output[1] = body_frame_set_vx + body_frame_set_vy - wheel_speed_by_wz;
+            chassis->motor_output[2] = body_frame_set_vx - body_frame_set_vy + wheel_speed_by_wz;
+            chassis->motor_output[3] = body_frame_set_vx + body_frame_set_vy + wheel_speed_by_wz;
         }
         else if (chassis->type == RFL_CHASSIS_OMNI)
         {
             float wheel_speed_by_vx = body_frame_set_vx * 1.41421356237309504f; // 乘√2
             float wheel_speed_by_vy = body_frame_set_vy * 1.41421356237309504f; // 乘√2
-            float wheel_speed_by_wz = chassis->set_wz_ * ((rfl_chassis_omni_parameter_s *)chassis->parameter)->length;
-            chassis->motor_output_[0] = wheel_speed_by_vx - wheel_speed_by_vy - wheel_speed_by_wz;
-            chassis->motor_output_[1] = wheel_speed_by_vx + wheel_speed_by_vy - wheel_speed_by_wz;
-            chassis->motor_output_[2] = wheel_speed_by_vx - wheel_speed_by_vy + wheel_speed_by_wz;
-            chassis->motor_output_[3] = wheel_speed_by_vx + wheel_speed_by_vy + wheel_speed_by_wz;
+            float wheel_speed_by_wz = chassis->set_wz * ((rfl_chassis_omni_parameter_s *)chassis->parameter)->length;
+            chassis->motor_output[0] = wheel_speed_by_vx - wheel_speed_by_vy - wheel_speed_by_wz;
+            chassis->motor_output[1] = wheel_speed_by_vx + wheel_speed_by_vy - wheel_speed_by_wz;
+            chassis->motor_output[2] = wheel_speed_by_vx - wheel_speed_by_vy + wheel_speed_by_wz;
+            chassis->motor_output[3] = wheel_speed_by_vx + wheel_speed_by_vy + wheel_speed_by_wz;
         }
         else if (chassis->type == RFL_CHASSIS_DUAL_STEER)
         {
@@ -501,7 +490,7 @@ static void chassis_update_motor_control(rfl_chassis_s *chassis)
         else if (chassis->type == RFL_CHASSIS_FOUR_STEER)
         {
             float wheel_speed_by_wz =
-                chassis->set_wz_ * ((rfl_chassis_four_steer_parameter_s *)chassis->parameter)->length;
+                chassis->set_wz * ((rfl_chassis_four_steer_parameter_s *)chassis->parameter)->length;
 
             /* 将自旋速度分解到XY平动速度上
              * 神秘系数分别是四个舵轮的自旋速度分量正方向在结构坐标系的角度的cos值和sin值
@@ -518,51 +507,52 @@ static void chassis_update_motor_control(rfl_chassis_s *chassis)
             mixed_vy[2] = body_frame_set_vy - 0.70710677f * wheel_speed_by_wz;
             mixed_vy[3] = body_frame_set_vy + 0.70710677f * wheel_speed_by_wz;
 
-            /*四象限反正切求舵向角度*/
             for (uint8_t i = 0; i < 4; i++)
             {
-                chassis->motor_output_[i + 4] = atan2f(mixed_vy[i], mixed_vx[i]);
-            }
+                /*勾股定理求轮速*/
+                chassis->motor_output[i] = rflSqrt(mixed_vx[i] * mixed_vx[i] + mixed_vy[i] * mixed_vy[i]);
 
-            /*底盘静止时舵向姿态*/
-            if (chassis->mode_ == RFL_CHASSIS_BEHAVIOR_FOLLOW_CONTROL)
-            {
-                /*舵向姿态为自旋姿态 锁定底盘平动*/
-                chassis->motor_output_[4] = -0.7853982f;
-                chassis->motor_output_[5] = 0.7853982f;
-                chassis->motor_output_[6] = -0.7853982f;
-                chassis->motor_output_[7] = 0.7853982f;
-            }
-            else if (chassis->mode_ == RFL_CHASSIS_BEHAVIOR_FREEZE)
-            {
-                /*舵向姿态跟随控制系 快速响应前后移动*/
-                chassis->motor_output_[4] = chassis->control_vector.rad;
-                chassis->motor_output_[5] = chassis->control_vector.rad;
-                chassis->motor_output_[6] = chassis->control_vector.rad;
-                chassis->motor_output_[7] = chassis->control_vector.rad;
+                /*四象限反正切求舵向角度*/
+                chassis->motor_output[i + 4] = atan2f(mixed_vy[i], mixed_vx[i]);
             }
 
             /* 舵向电机转角劣化 当舵向单次转角超过45度时 通过反转轮子速度方向的方式使得所需转角重新小于45度 */
             for (uint8_t i = 0; i < 4; i++)
             {
-                if (fabsf(rflFloatLoopConstrain(chassis->motor_feedback[i + 4] - chassis->motor_output_[i + 4], -RAD_PI,
+                if (fabsf(rflFloatLoopConstrain(chassis->motor_feedback[i + 4] - chassis->motor_output[i + 4], -RAD_PI,
                                                 RAD_PI)) > 1.5707964f)
                 {
-                    chassis->motor_output_[i + 4] =
-                        rflFloatLoopConstrain(chassis->motor_output_[i + 4] + RAD_PI, -RAD_PI, RAD_PI);
-                    chassis->reverse_steer_chassis_driving_motor_output[i] = true;
+                    chassis->motor_output[i + 4] =
+                        rflFloatLoopConstrain(chassis->motor_output[i + 4] + RAD_PI, -RAD_PI, RAD_PI);
+                    chassis->reverse_motor_output[i] = true;
                 }
                 else
                 {
-                    chassis->reverse_steer_chassis_driving_motor_output[i] = false;
+                    chassis->reverse_motor_output[i] = false;
                 }
+
+                chassis->motor_output[i] *= (chassis->reverse_motor_output[i] ? -1.0f : 1.0f);
             }
 
-            /*勾股定理求轮速*/
-            for (uint8_t i = 0; i < 4; i++)
+            /*底盘静止时舵向姿态*/
+            if ((fabs(body_frame_set_vx) + fabs(body_frame_set_vy) + fabs(chassis->set_wz)) <= 1e-6)
             {
-                chassis->motor_output_[i] = rflSqrt(mixed_vx[i] * mixed_vx[i] + mixed_vy[i] * mixed_vy[i]) *
-                                            (chassis->reverse_steer_chassis_driving_motor_output[i] ? -1.0f : 1.0f);
+                if (chassis->behavior == RFL_CHASSIS_BEHAVIOR_FOLLOW_CONTROL)
+                {
+                    /*舵向姿态为自旋姿态 锁定底盘平动*/
+                    chassis->motor_output[4] = -0.7853982f;
+                    chassis->motor_output[5] = 0.7853982f;
+                    chassis->motor_output[6] = -0.7853982f;
+                    chassis->motor_output[7] = 0.7853982f;
+                }
+                else if (chassis->behavior == RFL_CHASSIS_BEHAVIOR_FREEZE)
+                {
+                    /*舵向姿态跟随控制系 快速响应前后移动*/
+                    chassis->motor_output[4] = chassis->control_vector.rad;
+                    chassis->motor_output[5] = chassis->control_vector.rad;
+                    chassis->motor_output[6] = chassis->control_vector.rad;
+                    chassis->motor_output[7] = chassis->control_vector.rad;
+                }
             }
         }
     }

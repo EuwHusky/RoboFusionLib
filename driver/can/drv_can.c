@@ -3,18 +3,21 @@
 
 #include "drv_can.h"
 
-#if RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
-#include "main.h"
-#elif RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
+#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 #include "board.h"
 #include "hpm_can_drv.h"
 #include "hpm_interrupt.h"
-#endif
 
-#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 #define RFL_CAN_NUM RFL_CORE_WPIE_HPM6750_CAN_NUM
+
 #elif RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
+#include "main.h"
+
 #define RFL_CAN_NUM RFL_CORE_RM_C_BORAD_CAN_NUM
+
+extern CAN_HandleTypeDef hcan1;
+extern CAN_HandleTypeDef hcan2;
+
 #endif
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
@@ -249,9 +252,6 @@ SDK_DECLARE_EXT_ISR_M(BOARD_CAN3_IRQn, can3_callback);
 SDK_DECLARE_EXT_ISR_M(BOARD_CAN4_IRQn, can4_callback);
 
 #elif RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
-
-extern CAN_HandleTypeDef hcan1;
-extern CAN_HandleTypeDef hcan2;
 
 /**
  * @brief          hal库CAN回调函数,接收电机数据

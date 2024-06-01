@@ -114,7 +114,7 @@ typedef struct RmMotor
 
 } rm_motor_s;
 
-extern void rm_motor_init(rm_motor_s *rm_motor);
+extern void rm_motor_init(rm_motor_s *rm_motor, bool angle_zeroed);
 
 extern void rm_motor_update_status(rm_motor_s *rm_motor, uint8_t control_mode, uint8_t angle_format);
 

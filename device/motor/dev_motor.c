@@ -166,6 +166,10 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
         motor_config->damiao_motor_mode = DAMIAO_MOTOR_MODE_POS_SPEED;
     }
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+
+    /* 初始化功能 */
+
+    motor_config->angle_zeroed = true;
 }
 
 /**
@@ -257,7 +261,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         ((rm_motor_s *)(motor->driver))->can_ordinal = motor_config->can_ordinal;
         ((rm_motor_s *)(motor->driver))->master_can_id = motor_config->master_can_id;
 
-        rm_motor_init((rm_motor_s *)(motor->driver));
+        rm_motor_init((rm_motor_s *)(motor->driver), motor_config->angle_zeroed);
 
         break;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
@@ -379,6 +383,11 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
     default:
         break;
     }
+
+    // 单圈角度处理
+    if (motor->angle_format == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
+        rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE,
+                       rflFloatLoopConstrain(motor->angle_.deg, -DEG_PI, DEG_PI));
 
     // 输入输出需考虑反转
     motor->torque_ *= (motor->is_reversed ? -1.0f : 1.0f);

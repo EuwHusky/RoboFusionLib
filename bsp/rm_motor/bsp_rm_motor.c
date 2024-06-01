@@ -19,7 +19,7 @@ static void rm_motor_control_delay(uint16_t ms)
     rflOsDelayMs(ms);
 }
 
-void rm_motor_init(rm_motor_s *rm_motor)
+void rm_motor_init(rm_motor_s *rm_motor, bool angle_zeroed)
 {
     rm_motor->can_rx_data = rflCanGetRxMessageBoxData(rm_motor->can_ordinal, rm_motor->master_can_id);
     rm_motor_control_delay(5);
@@ -28,7 +28,8 @@ void rm_motor_init(rm_motor_s *rm_motor)
     decode_rm_motor_feedback(&rm_motor->feedback_, rm_motor->can_rx_data);
 
     // 记录上电时ecd
-    rm_motor->ecd_angle_offset = rm_motor->feedback_.ecd;
+    if (angle_zeroed)
+        rm_motor->ecd_angle_offset = rm_motor->feedback_.ecd;
 
     // 初始化上次ecd
     rm_motor->last_ecd = rm_motor->feedback_.ecd;

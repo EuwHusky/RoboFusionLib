@@ -133,6 +133,10 @@ typedef struct RflMotorConfig
     damiao_motor_mode_e damiao_motor_mode;
 #endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
 
+    /* 初始化功能 */
+
+    bool angle_zeroed; // 将电机置为0度
+
 } rfl_motor_config_s;
 
 /* 电机模块通用参数 --------------------------- */

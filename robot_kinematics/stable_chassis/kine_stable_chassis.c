@@ -29,7 +29,7 @@ static void chassis_update_status(rfl_chassis_s *chassis);
  *
  * @param chassis 底盘实体结构体指针
  */
-static void chassis_update_wz_set(rfl_chassis_s *chassis);
+static void chassis_update_speed_vector_set(rfl_chassis_s *chassis);
 /**
  * @brief 更新底盘电机控制输出值
  *
@@ -195,7 +195,7 @@ void rflChassisUpdate(rfl_chassis_s *chassis)
 
     chassis_update_status(chassis);
 
-    chassis_update_wz_set(chassis);
+    chassis_update_speed_vector_set(chassis);
 
     chassis_update_motor_control(chassis);
 }
@@ -387,15 +387,19 @@ static void chassis_update_status(rfl_chassis_s *chassis)
 }
 
 /**
- * @brief 更新底盘角速度控制量
+ * @brief 更新底盘速度控制量
  *
  * @param chassis 底盘实体结构体指针
  */
-static void chassis_update_wz_set(rfl_chassis_s *chassis)
+static void chassis_update_speed_vector_set(rfl_chassis_s *chassis)
 {
     switch (chassis->behavior)
     {
     case RFL_CHASSIS_BEHAVIOR_NO_FORCE:
+
+        chassis->set_vx = 0.0f;
+        chassis->set_vy = 0.0f;
+
         rflAngleUpdate(&chassis->set_forward_vector, RFL_ANGLE_FORMAT_DEGREE, chassis->forward_vector->deg);
         PID_clear(&((rfl_chassis_normal_pid_controller_s *)chassis->direction_controller)->angle_pid);
         chassis->set_wz = 0.0f;

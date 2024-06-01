@@ -48,7 +48,7 @@ void rflChassisGetDefaultConfig(rfl_chassis_config_s *config, rfl_chassis_type_e
     memset(config, 0, sizeof(rfl_chassis_config_s));
 
     config->type = type;
-    config->mode = RFL_CHASSIS_BEHAVIOR_NO_FORCE;
+    config->behavior = RFL_CHASSIS_BEHAVIOR_NO_FORCE;
     switch (config->type)
     {
     case RFL_CHASSIS_MECANUM:
@@ -95,7 +95,7 @@ void rflChassisInit(rfl_chassis_s *chassis, rfl_chassis_config_s *config, const 
     memset(chassis, 0, sizeof(rfl_chassis_s));
 
     chassis->type = config->type;
-    chassis->behavior = config->mode;
+    chassis->behavior = config->behavior;
 
     switch (config->type)
     {
@@ -204,15 +204,15 @@ void rflChassisUpdate(rfl_chassis_s *chassis)
  * @brief 设定底盘行为模式
  *
  * @param chassis 底盘实体结构体指针
- * @param mode 要设定的行为模式
+ * @param behavior 要设定的行为模式
  */
-void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode)
+void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e behavior)
 {
     // 机体系下FREEZE模式等价于FOLLOW模式
-    if (chassis->reference_frame == RFL_CHASSIS_CONTROL_FRAME && mode == RFL_CHASSIS_BEHAVIOR_FREEZE)
+    if (chassis->reference_frame == RFL_CHASSIS_CONTROL_FRAME && behavior == RFL_CHASSIS_BEHAVIOR_FREEZE)
         return;
 
-    chassis->behavior = mode;
+    chassis->behavior = behavior;
 }
 
 /**

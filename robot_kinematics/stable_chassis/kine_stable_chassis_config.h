@@ -61,8 +61,8 @@ typedef enum RflChassisBehavior
  */
 typedef struct RflChassisConfig
 {
-    rfl_chassis_type_e type;     /*底盘类型*/
-    rfl_chassis_behavior_e mode; /*底盘行为*/
+    rfl_chassis_type_e type;         /*底盘类型*/
+    rfl_chassis_behavior_e behavior; /*底盘行为*/
     float mecanum_width; /*上X下O型麦克纳姆轮底盘四个轮子与地面的接触点形成的矩形平行于Y方向的边长 单位-m*/
     float mecanum_length; /*上X下O型麦克纳姆轮底盘四个轮子与地面的接触点形成的矩形平行于X方向的边长*/
     float length; /*全向/舵轮底盘轮子与地面的接触点到底盘旋转中心的距离 单位-m*/

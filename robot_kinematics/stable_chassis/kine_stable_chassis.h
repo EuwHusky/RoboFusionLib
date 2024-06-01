@@ -89,9 +89,9 @@ extern void rflChassisUpdate(rfl_chassis_s *chassis);
  * @brief 设定底盘行为模式
  *
  * @param chassis 底盘实体结构体指针
- * @param mode 要设定的行为模式
+ * @param behavior 要设定的行为模式
  */
-extern void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e mode);
+extern void rflChassisSetBehavior(rfl_chassis_s *chassis, rfl_chassis_behavior_e behavior);
 
 /**
  * @brief 设定跟随模式下结构正方向相对于控制正方向的偏角

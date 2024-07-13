@@ -3,7 +3,7 @@
 
 #include "rfl_config.h"
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 
 #include "stdbool.h"
 #include "stdint.h"
@@ -53,6 +53,6 @@ extern void damiao_motor_save_zero(damiao_motor_s *damiao_motor);
 
 extern void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos, float set_vel);
 
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
 #endif /* _BSP_DAMIAO_MOTOR_H__ */

@@ -30,7 +30,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
 
     switch (motor_config->type)
     {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     case RFL_MOTOR_RM_M2006:
         motor_config->effector_transmission_ratio = RM_M2006_REDUCTION_RATIO;
         break;
@@ -40,13 +40,13 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
     case RFL_MOTOR_RM_GM6020:
         motor_config->effector_transmission_ratio = RM_GM6020_REDUCTION_RATIO;
         break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     case RFL_MOTOR_UNITREE_GO_M8010_6:
         motor_config->effector_transmission_ratio = UNITREE_GO_M8010_6_REDUCTION_RATIO;
         break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
     default:
         break;
@@ -62,7 +62,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
     {
         switch (motor_config->type)
         {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
         case RFL_MOTOR_RM_M2006:
             motor_config->speed_pid_kp = RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KP;
             motor_config->speed_pid_ki = RFL_MOTOR_RM_M2006_DEFAULT_SPEED_PID_KI;
@@ -99,7 +99,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
             motor_config->angle_pid_max_iout = RFL_MOTOR_RM_GM6020_DEFAULT_ANGLE_PID_MAX_IOUT;
             motor_config->angle_pid_max_out = RFL_MOTOR_RM_GM6020_DEFAULT_ANGLE_PID_MAX_OUT;
             break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
         default:
             motor_config->speed_pid_kp = RFL_MOTOR_DEFAULT_SPEED_PID_KP;
@@ -115,7 +115,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
             break;
         }
     }
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     else if (motor_config->controller_type == RFL_MOTOR_CONTROLLER_UNITREE)
     {
         switch (motor_config->type)
@@ -131,7 +131,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
             break;
         }
     }
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
     /* 状态量 */
 
@@ -140,19 +140,19 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
 
     /* 专有参数 */
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     if (motor_config->type >= RFL_MOTOR_RM_M2006 && motor_config->type <= RFL_MOTOR_RM_GM6020)
     {
         motor_config->can_ordinal = 1;
         motor_config->master_can_id = 0x201;
     }
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     motor_config->unitree_motor_id = 0;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
     if (motor_config->type >= RFL_MOTOR_DM_J8009_2EC && motor_config->type <= RFL_MOTOR_DM_J8009_2EC)
     {
         motor_config->can_ordinal = 1;
@@ -165,7 +165,7 @@ void rflMotorGetDefaultConfig(rfl_motor_config_s *motor_config, rfl_motor_type_e
 
         motor_config->damiao_motor_mode = DAMIAO_MOTOR_MODE_POS_SPEED;
     }
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
     /* 初始化功能 */
 
@@ -193,7 +193,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         motor->angle_format = RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE;
     if (motor_config->max_angle.deg < motor_config->min_angle.deg)
         return;
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
     if (motor_config->type >= RFL_MOTOR_DM_J8009_2EC && motor_config->type <= RFL_MOTOR_DM_J8009_2EC)
     {
         rflAngleUpdate(&motor_config->max_angle, RFL_ANGLE_FORMAT_RADIAN,
@@ -201,7 +201,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         rflAngleUpdate(&motor_config->min_angle, RFL_ANGLE_FORMAT_RADIAN,
                        rflFloatConstrain(motor_config->min_angle.rad, -motor_config->p_max, motor_config->p_max));
     }
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
     rflAngleUpdate(&motor->max_angle_, RFL_ANGLE_FORMAT_DEGREE, motor_config->max_angle.deg);
     rflAngleUpdate(&motor->min_angle_, RFL_ANGLE_FORMAT_DEGREE, motor_config->min_angle.deg);
 
@@ -242,7 +242,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
 
     switch (motor->type)
     {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     case RFL_MOTOR_RM_M2006:
     case RFL_MOTOR_RM_M3508:
     case RFL_MOTOR_RM_GM6020:
@@ -264,9 +264,9 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         rm_motor_init((rm_motor_s *)(motor->driver), motor_config->angle_zeroed);
 
         break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     case RFL_MOTOR_UNITREE_GO_M8010_6:
 
         motor->driver = (unitree_motor_s *)malloc(sizeof(unitree_motor_s));
@@ -282,9 +282,9 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         unitree_motor_init((unitree_motor_s *)(motor->driver));
 
         break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
     case RFL_MOTOR_DM_J8009_2EC:
 
         motor->driver = (damiao_motor_s *)malloc(sizeof(damiao_motor_s));
@@ -295,7 +295,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
                           motor_config->p_max, motor_config->v_max, motor_config->t_max);
 
         break;
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
     default:
         break;
@@ -314,7 +314,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
 {
     switch (motor->type)
     {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     case RFL_MOTOR_RM_M2006:
     case RFL_MOTOR_RM_M3508:
     case RFL_MOTOR_RM_GM6020:
@@ -336,9 +336,9 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         motor->temperature_ = (float)(((rm_motor_s *)(motor->driver))->temperature);
 
         break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     case RFL_MOTOR_UNITREE_GO_M8010_6:
 
         unitree_motor_update_status((unitree_motor_s *)(motor->driver));
@@ -356,9 +356,9 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
             rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
 
         break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
     case RFL_MOTOR_DM_J8009_2EC:
 
         damiao_motor_update_status((damiao_motor_s *)(motor->driver));
@@ -378,7 +378,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         motor->temperature_ = (float)(((damiao_motor_s *)(motor->driver))->temperature);
 
         break;
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
     default:
         break;
@@ -427,7 +427,7 @@ void rflMotorUpdateControl(rfl_motor_s *motor)
         motor->control_output_ *= (motor->is_reversed ? -1.0f : 1.0f);
         break;
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     case RFL_MOTOR_CONTROLLER_UNITREE:
         switch (motor->mode_)
         {
@@ -446,9 +446,9 @@ void rflMotorUpdateControl(rfl_motor_s *motor)
         }
         ((unitree_motor_s *)(motor->driver))->set_shaft_angle *= (motor->is_reversed ? -1.0f : 1.0f);
         break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 
     case RFL_MOTOR_CONTROLLER_DAMIAO:
 
@@ -463,7 +463,7 @@ void rflMotorUpdateControl(rfl_motor_s *motor)
         }
         // 已将电机安装极性属性内置到电机驱动 此处无需做反转处理
         break;
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
     default:
         break;
@@ -477,22 +477,22 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
 {
     switch (motor->type)
     {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     case RFL_MOTOR_RM_M2006:
     case RFL_MOTOR_RM_M3508:
     case RFL_MOTOR_RM_GM6020:
         break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     case RFL_MOTOR_UNITREE_GO_M8010_6:
 
         unitree_motor_control((unitree_motor_s *)(motor->driver));
 
         break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 
     case RFL_MOTOR_DM_J8009_2EC:
 
@@ -518,7 +518,7 @@ void rflMotorExecuteControl(rfl_motor_s *motor)
         }
 
         break;
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
     default:
         break;
@@ -544,19 +544,27 @@ void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, flo
 
     switch (motor->type)
     {
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     case RFL_MOTOR_RM_M2006:
     case RFL_MOTOR_RM_M3508:
     case RFL_MOTOR_RM_GM6020:
         rm_motor_reset_angle((rm_motor_s *)(motor->driver), angle.deg);
         break;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     case RFL_MOTOR_UNITREE_GO_M8010_6:
         unitree_motor_reset_angle((unitree_motor_s *)(motor->driver), angle.rad);
         break;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
+
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
+    case RFL_MOTOR_DM_J8009_2EC:
+        if (motor->mode_ != RFL_MOTOR_CONTROL_MODE_NO_FORCE && fabs(source_angle) > 1e-6)
+            return;
+        damiao_motor_save_zero((damiao_motor_s *)(motor->driver));
+        break;
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
     default:
         break;

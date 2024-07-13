@@ -2,7 +2,7 @@
 
 #include "bsp_damiao_motor.h"
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 #include "board.h"
@@ -106,4 +106,4 @@ void damiao_motor_pos_speed_control(damiao_motor_s *damiao_motor, float set_pos,
 #endif
 }
 
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */

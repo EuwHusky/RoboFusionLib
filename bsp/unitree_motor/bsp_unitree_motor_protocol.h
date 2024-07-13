@@ -3,7 +3,7 @@
 
 #include "dev_motor_config.h"
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
 
 #include "stdbool.h"
 #include "stdint.h"
@@ -72,6 +72,6 @@ typedef struct UnitreeMotorCommand
 
 #pragma pack()
 
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
 #endif /* _BSP_UNITREE_MOTOR_PROTOCOL_H__ */

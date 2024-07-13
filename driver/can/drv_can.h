@@ -23,11 +23,11 @@ extern void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data
 extern uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id);
 
 /* 使用RM官方电机 */
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
 
 extern void rflRmMotorControl(uint8_t can_ordinal, uint32_t can_id, int16_t motor1, int16_t motor2, int16_t motor3,
                               int16_t motor4);
 
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
 #endif /* _DRV_CAN_H__ */

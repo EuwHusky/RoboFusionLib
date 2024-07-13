@@ -3,7 +3,7 @@
 
 #include "dev_motor_config.h"
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
 
 #include "stdint.h"
 
@@ -57,6 +57,6 @@ extern void unitree_motor_reset_angle(unitree_motor_s *unitree_motor, float rad_
 extern void unitree_uart_init(void);
 extern const unitree_motor_feedback_s *unitree_motor_get_feedback_pointer(uint16_t unitree_motor_id);
 
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
 #endif /* _BSP_UNITREE_MOTOR_H__ */

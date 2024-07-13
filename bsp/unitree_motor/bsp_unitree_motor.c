@@ -1,6 +1,6 @@
 #include "bsp_unitree_motor.h"
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
 
 #include "math.h"
 #include "stdio.h"
@@ -232,4 +232,4 @@ void USART1_IRQHandler(void)
     }
 }
 
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */

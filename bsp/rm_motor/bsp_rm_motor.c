@@ -4,7 +4,7 @@
 
 #include "drv_can.h"
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
 
 #define CONTROL_MODE_NO_FORCE 0  // 无力
 #define CONTROL_MODE_SPEED 1     // 速度
@@ -111,4 +111,4 @@ void rm_motor_reset_angle(rm_motor_s *rm_motor, float deg_angle)
     rm_motor->deg_angle = (float)rm_motor->ecd_angle * rm_motor->ecd_to_effector_angle_factor;
 }
 
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */

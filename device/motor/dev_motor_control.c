@@ -96,7 +96,7 @@ void rfl_motor_pid_speed_angle_control(rfl_motor_s *motor)
         PID_calc(&((rfl_motor_pid_controller_s *)(motor->controller))->speed_pid, motor->speed_, motor->set_speed_);
 }
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
 void rfl_motor_unitree_no_force_control(rfl_motor_s *motor)
 {
     motor->control_output_ = motor->set_speed_ = motor->max_speed_ = 0.0f;
@@ -153,12 +153,12 @@ void rfl_motor_unitree_speed_angle_control(rfl_motor_s *motor)
 
     ((unitree_motor_s *)(motor->driver))->set_mode = 1;
 }
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 void rfl_motor_damiao_speed_angle_control(rfl_motor_s *motor)
 {
     rflAngleUpdate(&motor->set_angle_, RFL_ANGLE_FORMAT_RADIAN,
                    rflFloatConstrain(motor->set_angle_.rad, motor->min_angle_.rad, motor->max_angle_.rad));
 }
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */

@@ -8,17 +8,17 @@
 
 #include "algo_angle.h"
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
 #include "bsp_rm_motor.h"
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
 #include "bsp_unitree_motor.h"
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 #include "bsp_damiao_motor.h"
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
 /**
  * @brief 电机类型
@@ -27,19 +27,19 @@ typedef enum RflMotorType
 {
     RFL_MOTOR_NULL = 0,
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
     RFL_MOTOR_RM_M2006,
     RFL_MOTOR_RM_M3508,
     RFL_MOTOR_RM_GM6020,
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     RFL_MOTOR_UNITREE_GO_M8010_6,
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
     RFL_MOTOR_DM_J8009_2EC,
-#endif /* RFL_DEV_MOTOR_DAMIAO_MOTOR == 1 */
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
 
 } rfl_motor_type_e;
 
@@ -116,22 +116,22 @@ typedef struct RflMotorConfig
 
     /* 专有参数 */
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1 || RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if (RFL_BSP_RM_MOTOR_ENABLED || RFL_BSP_DAMIAO_MOTOR_ENABLED)
     uint8_t can_ordinal;
     uint32_t master_can_id;
     uint32_t slave_can_id;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
     uint16_t unitree_motor_id;
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
     float p_max;
     float v_max;
     float t_max;
     damiao_motor_mode_e damiao_motor_mode;
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
     /* 初始化功能 */
 
@@ -158,7 +158,7 @@ typedef struct RflMotorConfig
 #define RFL_MOTOR_DEFAULT_ANGLE_PID_MAX_IOUT (0.0f)
 #define RFL_MOTOR_DEFAULT_ANGLE_PID_MAX_OUT (0.0f)
 
-#if (RFL_DEV_MOTOR_RM_MOTOR == 1)
+#if RFL_BSP_RM_MOTOR_ENABLED
 // RM M2006 PID参数
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KP (1.0f)
 #define RFL_MOTOR_RM_M2006_DEFAULT_ANGLE_PID_KI (0.0f)
@@ -192,9 +192,9 @@ typedef struct RflMotorConfig
 #define RFL_MOTOR_RM_GM6020_DEFAULT_SPEED_PID_KD (0.0f)
 #define RFL_MOTOR_RM_GM6020_DEFAULT_SPEED_PID_MAX_IOUT (20000.0f)
 #define RFL_MOTOR_RM_GM6020_DEFAULT_SPEED_PID_MAX_OUT (30000.0f)
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_UNITREE_MOTOR == 1)
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
 #define RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE (1.2f)
 #define RFL_MOTOR_UNITREE_GO_M8010_6_K_SPEED (0.03f)
 // #define RFL_MOTOR_UNITREE_GO_M8010_6_K_ANGLE (5.0f)
@@ -202,12 +202,12 @@ typedef struct RflMotorConfig
 
 #define RFL_MOTOR_UNITREE_DEFAULT_K_ANGLE (0.0f)
 #define RFL_MOTOR_UNITREE_DEFAULT_K_SPEED (0.0f)
-#endif /* RFL_DEV_MOTOR_UNITREE_MOTOR == 1 */
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
 
-#if (RFL_DEV_MOTOR_DAMIAO_MOTOR == 1)
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
 #define RFL_MOTOR_DAMIAO_DEFAULT_P_MAX (12.5f)
 #define RFL_MOTOR_DAMIAO_DEFAULT_V_MAX (45.0f)
 #define RFL_MOTOR_DAMIAO_DEFAULT_T_MAX (18.0f)
-#endif /* RFL_DEV_MOTOR_RM_MOTOR == 1 */
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
 
 #endif /* _DEV_MOTOR_CONFIG_H__ */

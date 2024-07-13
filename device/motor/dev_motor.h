@@ -85,7 +85,7 @@ extern void rflMotorExecuteControl(rfl_motor_s *motor);
 /**
  * @brief 重置电机角度
  */
-extern void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float angle,
+extern void rflMotorResetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format, float source_angle,
                                bool security_restriction);
 
 /**

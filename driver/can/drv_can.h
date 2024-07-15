@@ -11,14 +11,15 @@ typedef struct RflCan
 {
     uint8_t usage_size; /* 已使用的邮箱大小 */
 
-    uint8_t storage[MAX_NUM_OF_RX_CAN_ID][8];                  /* 邮箱储存 */
-    uint32_t id_table[MAX_NUM_OF_RX_CAN_ID];                   /* canid表 */
-    void (*rx_callback_func_list[MAX_NUM_OF_RX_CAN_ID])(void); /* 接收触发回调函数 */
+    uint8_t storage[MAX_NUM_OF_RX_CAN_ID][8];                       /* 邮箱储存 */
+    uint32_t id_table[MAX_NUM_OF_RX_CAN_ID];                        /* canid表 */
+    void (*rx_callback_func_list[MAX_NUM_OF_RX_CAN_ID])(uint8_t *); /* 接收触发回调函数 */
 } rfl_can_rx_msg_box_s;
 
 extern void rflCanInit(void);
 extern void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id);
-extern void rflCanRxMessageBoxAddRxCallbackFunc(uint8_t can_ordinal, uint32_t can_id, void (*rx_callback_func)(void));
+extern void rflCanRxMessageBoxAddRxCallbackFunc(uint8_t can_ordinal, uint32_t can_id,
+                                                void (*rx_callback_func)(uint8_t *));
 extern void rflCanSendData(uint8_t can_ordinal, uint32_t can_id, uint8_t tx_data[8]);
 extern uint8_t *rflCanGetRxMessageBoxData(uint8_t can_ordinal, uint32_t can_id);
 

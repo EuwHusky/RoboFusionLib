@@ -50,7 +50,7 @@ void rflCanRxMessageBoxAddId(uint8_t can_ordinal, uint32_t can_id)
     rx_message_boxes[can_ordinal - 1].id_table[rx_message_boxes[can_ordinal - 1].usage_size - 1] = can_id;
 }
 
-void rflCanRxMessageBoxAddRxCallbackFunc(uint8_t can_ordinal, uint32_t can_id, void (*rx_callback_func)(void))
+void rflCanRxMessageBoxAddRxCallbackFunc(uint8_t can_ordinal, uint32_t can_id, void (*rx_callback_func)(uint8_t *))
 {
     if (can_ordinal > RFL_CAN_NUM)
         return;
@@ -76,7 +76,7 @@ void rflCanSaveToRxMessageBox(uint8_t can_ordinal, uint32_t can_id, uint8_t rx_d
         {
             memcpy(rx_message_boxes[can_ordinal - 1].storage[i], rx_data, 8 * sizeof(uint8_t));
             if (rx_message_boxes[can_ordinal - 1].rx_callback_func_list[i] != NULL)
-                rx_message_boxes[can_ordinal - 1].rx_callback_func_list[i]();
+                rx_message_boxes[can_ordinal - 1].rx_callback_func_list[i](rx_data);
             break;
         }
     }

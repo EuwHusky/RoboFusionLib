@@ -1,3 +1,5 @@
+#include "stddef.h"
+
 #include "bsp_dt7_dr16.h"
 
 #include "algo_math.h"

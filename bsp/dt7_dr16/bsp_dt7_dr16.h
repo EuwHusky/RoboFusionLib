@@ -8,6 +8,28 @@
 
 #if RFL_DEV_REMOTE_CONTROLL_DT7_DR16
 
+typedef enum
+{
+    DT7_ROCKER_LEFT_HORIZONTAL = 0,
+    DT7_ROCKER_LEFT_VERTICAL_SWITCH = 1,
+    DT7_ROCKER_RIGHT_HORIZONTAL_SWITCH = 2,
+    DT7_ROCKER_RIGHT_VERTICAL_SWITCH = 3
+} dt7_rocker_channel_index_e;
+
+typedef enum
+{
+    DT7_SWITCH_LEFT = 1,
+    DT7_SWITCH_RIGHT = 0
+} dt7_toggle_switch_index_e;
+
+typedef enum
+{
+    DT7_SWITCH_NONE = 0,
+    DT7_SWITCH_UP = 1,
+    DT7_SWITCH_MID = 3,
+    DT7_SWITCH_DOWN = 2
+} dt7_toggle_switch_position_e;
+
 typedef struct __attribute__((packed))
 {
     struct __attribute__((packed))

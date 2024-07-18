@@ -51,10 +51,10 @@ typedef struct RflChassis
 
     uint8_t motor_num; /*底盘电机数量*/
     /* 底盘电机组反馈量 数组大小为电机数量 数组下标为电机顺序 数组元素为单个电机的反馈值
-     * 对于驱动电机此项为速度 向前为正 单位-m/s 对于舵向电机此项为角度 逆时针为正 单位-degree */
+     * 对于驱动电机此项为速度 向前为正 单位-m/s 对于舵向电机此项为角度 逆时针为正 单位-radian */
     const float *motor_feedback;
     /* 底盘电机组控制量 数组大小为电机数量 数组下标为电机顺序 数组元素为单个电机的控制量
-     * 对于驱动电机此项为速度 向前为正 单位-m/s 对于舵向电机此项为角度 逆时针为正 单位-degree */
+     * 对于驱动电机此项为速度 向前为正 单位-m/s 对于舵向电机此项为角度 逆时针为正 单位-radian */
     float *motor_output;
     bool *reverse_motor_output; /*反转电机输出方向 仅用于舵轮底盘的舵向转角劣化控制*/
 } rfl_chassis_s;

@@ -328,10 +328,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         else
             motor->speed_ = *motor->external_speed;
 
-        if (motor->external_angle == NULL)
-            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, ((rm_motor_s *)(motor->driver))->deg_angle);
-        else
-            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
+        rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE, ((rm_motor_s *)(motor->driver))->deg_angle);
 
         motor->temperature_ = (float)(((rm_motor_s *)(motor->driver))->temperature);
 
@@ -350,10 +347,8 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         else
             motor->speed_ = *motor->external_speed;
 
-        if (motor->external_angle == NULL)
-            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_RADIAN, ((unitree_motor_s *)(motor->driver))->shaft_angle);
-        else
-            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
+        rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_RADIAN,
+                       ((unitree_motor_s *)(motor->driver))->shaft_angle);
 
         break;
 #endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
@@ -370,10 +365,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         else
             motor->speed_ = *motor->external_speed;
 
-        if (motor->external_angle == NULL)
-            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_RADIAN, ((damiao_motor_s *)(motor->driver))->position);
-        else
-            rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
+        rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_RADIAN, ((damiao_motor_s *)(motor->driver))->position);
 
         motor->temperature_ = (float)(((damiao_motor_s *)(motor->driver))->temperature);
 
@@ -384,15 +376,23 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
         break;
     }
 
+    // 结算 考虑安装极性
+
+    motor->torque_ *= (motor->is_reversed ? -1.0f : 1.0f);
+
+    if (motor->external_speed == NULL)
+        motor->speed_ *= (motor->is_reversed ? -1.0f : 1.0f);
+
+    rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE,
+                   motor->internal_angle.deg * (motor->is_reversed ? -1.0f : 1.0f));
     // 单圈角度处理
     if (motor->angle_format == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
-        rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE,
-                       rflFloatLoopConstrain(motor->angle_.deg, -DEG_PI, DEG_PI));
-
-    // 输入输出需考虑反转
-    motor->torque_ *= (motor->is_reversed ? -1.0f : 1.0f);
-    motor->speed_ *= (motor->is_reversed ? -1.0f : 1.0f);
-    rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->angle_.deg * (motor->is_reversed ? -1.0f : 1.0f));
+        rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE,
+                       rflFloatLoopConstrain(motor->internal_angle.deg, -DEG_PI, DEG_PI));
+    if (motor->external_angle == NULL)
+        rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->internal_angle.deg);
+    else
+        rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
 }
 
 /**
@@ -750,11 +750,6 @@ float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
  */
 float rflMotorGetInternalAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
 {
-    if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
-        return motor->angle_.deg;
-    else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
-        return motor->angle_.rad;
-
     switch (motor->type)
     {
 #if RFL_BSP_RM_MOTOR_ENABLED

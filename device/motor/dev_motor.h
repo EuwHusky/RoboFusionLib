@@ -135,6 +135,10 @@ extern float rflMotorGetSpeed(rfl_motor_s *motor);
  */
 extern float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
 /**
+ * @brief 获取电机当前自反馈角度
+ */
+extern float rflMotorGetInternalAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format);
+/**
  * @brief 获取电机当前温度
  */
 extern float rflMotorGetTemperature(rfl_motor_s *motor);

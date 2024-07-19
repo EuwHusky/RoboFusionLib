@@ -746,6 +746,53 @@ float rflMotorGetAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
     return 0.0f;
 }
 /**
+ * @brief 获取电机当前自反馈角度
+ */
+float rflMotorGetInternalAngle(rfl_motor_s *motor, rfl_angle_format_e angle_format)
+{
+    if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+        return motor->angle_.deg;
+    else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+        return motor->angle_.rad;
+
+    switch (motor->type)
+    {
+#if RFL_BSP_RM_MOTOR_ENABLED
+    case RFL_MOTOR_RM_M2006:
+    case RFL_MOTOR_RM_M3508:
+    case RFL_MOTOR_RM_GM6020:
+        if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+            return (((rm_motor_s *)(motor->driver))->deg_angle);
+        else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+            return (((rm_motor_s *)(motor->driver))->deg_angle * DEGREE_TO_RADIAN_FACTOR);
+        break;
+#endif /* RFL_BSP_RM_MOTOR_ENABLED */
+
+#if RFL_BSP_UNITREE_MOTOR_ENABLED
+    case RFL_MOTOR_UNITREE_GO_M8010_6:
+        if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+            return (((unitree_motor_s *)(motor->driver))->shaft_angle * RADIAN_TO_DEGREE_FACTOR);
+        else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+            return (((unitree_motor_s *)(motor->driver))->shaft_angle);
+        break;
+#endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */
+
+#if RFL_BSP_DAMIAO_MOTOR_ENABLED
+    case RFL_MOTOR_DM_J8009_2EC:
+        if (angle_format == RFL_ANGLE_FORMAT_DEGREE)
+            return (((damiao_motor_s *)(motor->driver))->position * RADIAN_TO_DEGREE_FACTOR);
+        else if (angle_format == RFL_ANGLE_FORMAT_RADIAN)
+            return (((damiao_motor_s *)(motor->driver))->position);
+        break;
+#endif /* RFL_BSP_DAMIAO_MOTOR_ENABLED */
+
+    default:
+        break;
+    }
+
+    return 0.0f;
+}
+/**
  * @brief 获取电机当前温度
  */
 float rflMotorGetTemperature(rfl_motor_s *motor)

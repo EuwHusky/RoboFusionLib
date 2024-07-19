@@ -28,4 +28,9 @@ extern float rflFloatConstrain(float input, float min_value, float max_value);
  */
 extern float rflFloatLoopConstrain(float input, float min_value, float max_value);
 
+/**
+ * @brief 单精度浮点型求圆上劣弧中点位置
+ */
+extern float rflFloatCircleMidPoint(float point_0, float point_1, float min_value, float max_value);
+
 #endif /* _ALGO_DATA_LIMITING_H__ */

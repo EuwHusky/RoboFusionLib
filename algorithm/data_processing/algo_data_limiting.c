@@ -87,3 +87,29 @@ float rflFloatLoopConstrain(float input, float min_value, float max_value)
     }
     return input;
 }
+
+/**
+ * @brief 单精度浮点型求圆上劣弧中点位置
+ */
+float rflFloatCircleMidPoint(float point_0, float point_1, float min_value, float max_value)
+{
+    if (max_value < min_value)
+        return 0.0f;
+
+    float len = max_value - min_value;
+
+    point_0 = rflFloatLoopConstrain(point_0, min_value, max_value);
+    point_1 = rflFloatLoopConstrain(point_1, min_value, max_value);
+
+    float delta = point_1 - point_0;
+
+    if (delta > max_value)
+    {
+        delta -= len;
+    }
+    else if (delta < min_value)
+    {
+        delta += len;
+    }
+    return point_0 + delta / 2.0f;
+}

@@ -323,10 +323,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
 
         motor->torque_ = ((rm_motor_s *)(motor->driver))->torque;
 
-        if (motor->external_speed == NULL)
-            motor->speed_ = ((rm_motor_s *)(motor->driver))->speed;
-        else
-            motor->speed_ = *motor->external_speed;
+        motor->internal_speed = ((rm_motor_s *)(motor->driver))->speed;
 
         rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE, ((rm_motor_s *)(motor->driver))->deg_angle);
 
@@ -342,10 +339,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
 
         motor->torque_ = ((unitree_motor_s *)(motor->driver))->torque;
 
-        if (motor->external_speed == NULL)
-            motor->speed_ = ((unitree_motor_s *)(motor->driver))->shaft_speed;
-        else
-            motor->speed_ = *motor->external_speed;
+        motor->internal_speed = ((unitree_motor_s *)(motor->driver))->shaft_speed;
 
         rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_RADIAN,
                        ((unitree_motor_s *)(motor->driver))->shaft_angle);
@@ -360,10 +354,7 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
 
         motor->torque_ = ((damiao_motor_s *)(motor->driver))->torque;
 
-        if (motor->external_speed == NULL)
-            motor->speed_ = ((damiao_motor_s *)(motor->driver))->velocity;
-        else
-            motor->speed_ = *motor->external_speed;
+        motor->internal_speed = ((damiao_motor_s *)(motor->driver))->velocity;
 
         rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_RADIAN, ((damiao_motor_s *)(motor->driver))->position);
 
@@ -380,8 +371,8 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
 
     motor->torque_ *= (motor->is_reversed ? -1.0f : 1.0f);
 
-    if (motor->external_speed == NULL)
-        motor->speed_ *= (motor->is_reversed ? -1.0f : 1.0f);
+    motor->internal_speed *= (motor->is_reversed ? -1.0f : 1.0f);
+    motor->speed_ = motor->external_speed == NULL ? motor->internal_speed : *motor->external_speed;
 
     rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE,
                    motor->internal_angle.deg * (motor->is_reversed ? -1.0f : 1.0f));
@@ -389,10 +380,8 @@ void rflMotorUpdateStatus(rfl_motor_s *motor)
     if (motor->angle_format == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
         rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE,
                        rflFloatLoopConstrain(motor->internal_angle.deg, -DEG_PI, DEG_PI));
-    if (motor->external_angle == NULL)
-        rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->internal_angle.deg);
-    else
-        rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE, motor->external_angle->deg);
+    rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE,
+                   motor->external_angle == NULL ? motor->internal_angle.deg : motor->external_angle->deg);
 }
 
 /**

@@ -42,7 +42,8 @@ typedef struct RflMotor
 
     float torque_; // 电机转矩 单位 N * M
 
-    float speed_; // 末端执行器转速 单位 rad * s^-1
+    float speed_;         // 末端执行器转速 单位 rad * s^-1
+    float internal_speed; // 末端执行器转速 单位 rad * s^-1 数据源为电机自身反馈
 
     rfl_angle_s angle_;         // 末端执行器角度 逆时针为正
     rfl_angle_s internal_angle; // 末端执行器角度 逆时针为正 数据源为电机自身反馈

@@ -36,7 +36,7 @@ typedef struct RflChassis
 
     /*惯性坐标系下用户设定的底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π
      * 以此可以确定底盘控制坐标系*/
-    const rfl_angle_s *set_control_vector;
+    const rfl_angle_s *set_control_vector_;
     /*参考系下用于直接参与计算的本地底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π
      * 以此可以确定底盘控制坐标系*/
     rfl_angle_s control_vector;
@@ -56,7 +56,8 @@ typedef struct RflChassis
     /* 底盘电机组控制量 数组大小为电机数量 数组下标为电机顺序 数组元素为单个电机的控制量
      * 对于驱动电机此项为速度 向前为正 单位-m/s 对于舵向电机此项为角度 逆时针为正 单位-radian */
     float *motor_output;
-    bool *reverse_motor_output; /*反转电机输出方向 仅用于舵轮底盘的舵向转角劣化控制*/
+    bool reverse_drive_motor_output_[4]; /*反转电机输出方向 仅用于舵轮底盘的舵向转角劣化控制*/
+    float last_steer_motor_output_[4]; /*上一个控制周期的舵轮控制输出 仅用于舵轮底盘的静止处理控制*/
 } rfl_chassis_s;
 
 /**

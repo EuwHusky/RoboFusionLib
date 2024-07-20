@@ -72,7 +72,7 @@ typedef struct RflChassisConfig
 
     /*惯性坐标系下用户设定的底盘控制方向 以控制时移动的前方为X轴正方向 向上为Z轴正方向 范围 -π ~ π
      * 以此可以确定底盘控制坐标系*/
-    const rfl_angle_s *set_control_vector;
+    const rfl_angle_s *set_control_vector_;
     rfl_chassis_direction_controller_type_e direction_controller_type; /*底盘方向控制器类型*/
     float direction_pid_param[5];                                      /*底盘方向PID控制器参数*/
 } rfl_chassis_config_s;

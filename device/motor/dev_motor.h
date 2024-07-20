@@ -44,7 +44,8 @@ typedef struct RflMotor
 
     float speed_; // 末端执行器转速 单位 rad * s^-1
 
-    rfl_angle_s angle_; // 末端执行器角度 逆时针为正
+    rfl_angle_s angle_;         // 末端执行器角度 逆时针为正
+    rfl_angle_s internal_angle; // 末端执行器角度 逆时针为正 数据源为电机自身反馈
 
     float temperature_; // 电机温度 单位 °C
 

@@ -350,6 +350,18 @@ static uint8_t can_send_data[RFL_CAN_NUM][8];
 void rflRmMotorControl(uint8_t can_ordinal, uint32_t can_id, int16_t motor1, int16_t motor2, int16_t motor3,
                        int16_t motor4)
 {
+    can_ordinal -= 1;
+
+#if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
+    if (can_ordinal > 3)
+        return;
+
+#elif RFL_CONFIG_CORE == RFL_CORE_RM_C_BORAD
+    if (can_ordinal > 1)
+        return;
+
+#endif
+
     can_send_data[can_ordinal][0] = motor1 >> 8;
     can_send_data[can_ordinal][1] = motor1;
     can_send_data[can_ordinal][2] = motor2 >> 8;

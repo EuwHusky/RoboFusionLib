@@ -49,7 +49,7 @@ typedef struct UnitreeMotor
     float angle_offset;
 } unitree_motor_s;
 
-extern void unitree_motor_init(unitree_motor_s *unitree_motor);
+extern void unitree_motor_init(unitree_motor_s *unitree_motor, bool angle_zeroed);
 extern void unitree_motor_update_status(unitree_motor_s *unitree_motor);
 extern void unitree_motor_control(unitree_motor_s *unitree_motor);
 extern void unitree_motor_reset_angle(unitree_motor_s *unitree_motor, float rad_angle);

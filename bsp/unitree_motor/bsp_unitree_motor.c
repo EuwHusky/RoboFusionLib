@@ -31,8 +31,11 @@ static void unitree_motor_control_delay(uint16_t ms)
     osDelay(ms);
 }
 
-void unitree_motor_init(unitree_motor_s *unitree_motor)
+void unitree_motor_init(unitree_motor_s *unitree_motor, bool angle_zeroed)
 {
+    if (!angle_zeroed)
+        return;
+
     // 发送一次停止命令以获取反馈数据
     unitree_motor->set_mode = 0;
     unitree_motor->set_torque = 0.0f;

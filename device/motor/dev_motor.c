@@ -279,7 +279,7 @@ void rflMotorInit(rfl_motor_s *motor, rfl_motor_config_s *motor_config)
         ((unitree_motor_s *)(motor->driver))->feedback =
             unitree_motor_get_feedback_pointer(motor_config->unitree_motor_id);
 
-        unitree_motor_init((unitree_motor_s *)(motor->driver));
+        unitree_motor_init((unitree_motor_s *)(motor->driver), motor_config->angle_zeroed);
 
         break;
 #endif /* RFL_BSP_UNITREE_MOTOR_ENABLED */

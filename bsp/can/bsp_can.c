@@ -1,7 +1,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-#include "cdv_can.h"
+#include "bsp_can.h"
 
 #if RFL_CONFIG_CORE == RFL_CORE_WPIE_HPM6750
 #include "board.h"

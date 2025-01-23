@@ -9,7 +9,7 @@
 #include "hpm_can_drv.h"
 #endif
 
-#include "cdv_can.h"
+#include "bsp_can.h"
 #include "drv_delay.h"
 
 #include "algo_value.h"

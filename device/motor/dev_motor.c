@@ -5,7 +5,7 @@
 #include "dev_motor.h"
 #include "dev_motor_control.h"
 
-#include "cdv_can.h"
+#include "bsp_can.h"
 
 #include "algo_data_limiting.h"
 

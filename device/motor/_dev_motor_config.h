@@ -1,5 +1,5 @@
-#ifndef _DEV_MOTOR_CONFIG_H__
-#define _DEV_MOTOR_CONFIG_H__
+#ifndef _DEV_MOTOR_CONFIG_H___
+#define _DEV_MOTOR_CONFIG_H___
 
 #include "stdbool.h"
 #include "stdint.h"

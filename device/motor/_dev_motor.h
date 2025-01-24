@@ -1,8 +1,8 @@
-#ifndef _DEV_MOTOR__
-#define _DEV_MOTOR__
+#ifndef _DEV_MOTOR___
+#define _DEV_MOTOR___
 
-#include "dev_motor_config.h"
-#include "dev_motor_controller.h"
+#include "_dev_motor_config.h"
+#include "_dev_motor_controller.h"
 
 #include "algo_angle.h"
 

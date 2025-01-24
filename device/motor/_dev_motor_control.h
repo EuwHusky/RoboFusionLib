@@ -1,7 +1,7 @@
-#ifndef _DEV_MOTOR_CONTROL_H__
-#define _DEV_MOTOR_CONTROL_H__
+#ifndef _DEV_MOTOR_CONTROL_H___
+#define _DEV_MOTOR_CONTROL_H___
 
-#include "dev_motor.h"
+#include "_dev_motor.h"
 
 extern void rfl_motor_pid_no_force_control(rfl_motor_s *motor);
 extern void rfl_motor_pid_speed_control(rfl_motor_s *motor);

@@ -1,7 +1,7 @@
-#ifndef _DEV_MOTOR_CONTROLLER__
-#define _DEV_MOTOR_CONTROLLER__
+#ifndef _DEV_MOTOR_CONTROLLER___
+#define _DEV_MOTOR_CONTROLLER___
 
-#include "dev_motor_config.h"
+#include "_dev_motor_config.h"
 
 #include "algo_pid.h"
 

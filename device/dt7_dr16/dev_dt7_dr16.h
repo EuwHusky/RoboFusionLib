@@ -1,5 +1,5 @@
-#ifndef _BSP_DT7_DR16_H__
-#define _BSP_DT7_DR16_H__
+#ifndef _DEV_DT7_DR16_H__
+#define _DEV_DT7_DR16_H__
 
 #include "stdbool.h"
 #include "stdint.h"
@@ -66,6 +66,6 @@ typedef struct __attribute__((packed))
 extern void rflDt7Dr16Decode(volatile const uint8_t *data_buf, rfl_dt7_dr16_data_s *dt7_dr16_data);
 extern bool rflDt7Dr16CheckIsDataCorrect(rfl_dt7_dr16_data_s *dt7_dr16_data);
 
-#endif /* RFL_DEV_REMOTE_CONTROLL_DT7_DR16 */
+#endif
 
-#endif /* _BSP_DT7_DR16_H__ */
+#endif /* _DEV_DT7_DR16_H__ */

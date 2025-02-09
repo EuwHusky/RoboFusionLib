@@ -104,4 +104,8 @@ typedef struct
 
 } RflRmMotor;
 
+extern RflResult RflRmMotorGetDefaultConfig(RflRmMotorConfig *config, RflMotorType type,
+                                            RflMotorControllerType controller_type);
+extern RflResult RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config);
+
 #endif /* _DEV_RM_MOTOR_H__ */

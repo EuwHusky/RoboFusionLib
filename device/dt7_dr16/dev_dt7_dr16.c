@@ -1,6 +1,6 @@
 #include "stddef.h"
 
-#include "bsp_dt7_dr16.h"
+#include "dev_dt7_dr16.h"
 
 #include "algo_math.h"
 
@@ -87,4 +87,4 @@ error:
     return false;
 }
 
-#endif /* RFL_DEV_REMOTE_CONTROLL_DT7_DR16 */
+#endif

@@ -36,7 +36,7 @@ typedef struct
 
     RflResult (*UpdateState)(void *);
     RflResult (*UpdateControl)(void *);
-    RflResult (*ResetPosition)(void *);
+    RflResult (*ResetPosition)(void *, float);
     RflResult (*SetMode)(void *, RflMotorControlMode);
     RflResult (*SetSpeed)(void *, float);
     RflResult (*SetMaxSpeed)(void *, float);

@@ -25,4 +25,13 @@ typedef struct
 
 } RflRmMotorControllerNormalPid;
 
+extern void RflRmMotorControlValueReset(RflRmMotor *self);
+extern void RflRmMotorControllerReset(RflRmMotor *self);
+
+extern void RflRmMotorNormalPidReset(RflRmMotor *self);
+extern void RflRmMotorNormalPidNoForceControl(RflRmMotor *self);
+extern void RflRmMotorNormalPidSpeedControl(RflRmMotor *self);
+extern void RflRmMotorNormalPidCircledPositionControl(RflRmMotor *self);
+extern void RflRmMotorNormalPidAbsolutePositionControl(RflRmMotor *self);
+
 #endif /* _DEV_RM_MOTOR_CONTROLLER__ */

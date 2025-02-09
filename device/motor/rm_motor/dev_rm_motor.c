@@ -8,7 +8,7 @@
 
 static RflResult RflRmMotorUpdateState(void *rm_motor);
 static RflResult RflRmMotorUpdateControl(void *rm_motor);
-static RflResult RflRmMotorResetPosition(void *rm_motor);
+static RflResult RflRmMotorResetPosition(void *rm_motor, float position);
 static RflResult RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode);
 static RflResult RflRmMotorGetControlOutput(void *rm_motor);
 
@@ -260,7 +260,7 @@ static RflResult RflRmMotorUpdateState(void *rm_motor)
     // 计算电机温度
     self->base.temperature_ = self->feedback_.temperate;
 
-    // 结算 考虑安装极性
+    // 结算 考虑安装极性与外部数据源
 
     self->base.torque_ *= (self->base.is_reversed_ ? -1.0f : 1.0f);
 
@@ -277,10 +277,79 @@ static RflResult RflRmMotorUpdateState(void *rm_motor)
 
 static RflResult RflRmMotorUpdateControl(void *rm_motor)
 {
+    RflResult ret = {0};
+    if (rm_motor == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    RflRmMotor *self = (RflRmMotor *)rm_motor;
+
+    switch (self->base.mode_)
+    {
+    case RFL_MOTOR_CONTROL_MODE_NO_FORCE:
+        RflRmMotorNormalPidNoForceControl(self);
+        break;
+    case RFL_MOTOR_CONTROL_MODE_SPEED:
+        RflRmMotorNormalPidSpeedControl(self);
+        break;
+    case RFL_MOTOR_CONTROL_MODE_POSITION:
+        if (self->base.angle_format_ == RFL_MOTOR_ANGLE_FORMAT_CIRCLED)
+            RflRmMotorNormalPidCircledPositionControl(self);
+        else if (self->base.angle_format_ == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
+            RflRmMotorNormalPidAbsolutePositionControl(self);
+        break;
+
+    default:
+        break;
+    }
+
+    self->control_output_ *= (self->base.is_reversed_ ? -1.0f : 1.0f);
+
+    ret.error = RFL_SUCCESS;
+    return ret;
 }
 
-static RflResult RflRmMotorResetPosition(void *rm_motor)
+static RflResult RflRmMotorResetPosition(void *rm_motor, float position)
 {
+    RflResult ret = {0};
+    if (rm_motor == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    RflRmMotor *self = (RflRmMotor *)rm_motor;
+
+    position *= (self->base.is_reversed_ ? -1.0f : 1.0f);
+
+    // 反向计算转子圈数和偏置 为了方便所以将偏置从无符号改为了有符号整形
+    int32_t ecd_angle =
+        (int32_t)((double)position * RADIAN_TO_DEGREE_FACTOR / (double)self->ecd_to_effector_angle_factor_);
+    self->rotor_turns_ = ecd_angle / RM_MOTOR_ECD_RANGE;
+    self->ecd_angle_offset_ = self->feedback_.ecd - (ecd_angle - self->rotor_turns_ * RM_MOTOR_ECD_RANGE);
+
+    // 重新计算末端执行器角度
+    self->ecd_angle_ = self->rotor_turns_ * RM_MOTOR_ECD_RANGE + self->feedback_.ecd - self->ecd_angle_offset_;
+    self->base.internal_position_ =
+        (float)self->ecd_angle_ * self->ecd_to_effector_angle_factor_ * DEGREE_TO_RADIAN_FACTOR;
+    // 单圈角度处理
+    if (self->base.angle_format_ == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
+    {
+        self->base.internal_position_ = rflFloatLoopConstrain(self->base.internal_position_, -RAD_PI, RAD_PI);
+    }
+
+    self->base.internal_position_ *= (self->base.is_reversed_ ? -1.0f : 1.0f);
+    self->base.position_ =
+        self->base.external_position_ == NULL ? self->base.internal_position_ : *self->base.external_position_;
+
+    // 重置控制量
+    RflRmMotorControlValueReset(self);
+    RflRmMotorControllerReset(self);
+
+    ret.error = RFL_SUCCESS;
+    return ret;
 }
 
 static RflResult RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode)
@@ -297,18 +366,15 @@ static RflResult RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode)
     if (mode == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
     {
         self->base.mode_ = mode;
-        RflRmMotorControllerNormalPid *controller = (RflRmMotorControllerNormalPid *)self->base.controller_;
-        PID_clear(&controller->position_pid);
-        PID_clear(&controller->speed_pid);
-        self->control_output_ = self->base.set_speed_ = 0.0f;
-        self->base.track_position_ = self->base.set_position_ = self->base.position_;
+        RflRmMotorControlValueReset(self);
+        RflRmMotorControllerReset(self);
     }
     else if (mode == RFL_MOTOR_CONTROL_MODE_SPEED && self->base.mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
     {
         self->base.mode_ = mode;
         self->base.track_position_ = self->base.set_position_ = 0.0f;
     }
-    else if (mode == RFL_MOTOR_CONTROL_MODE_ANGLE && self->base.mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
+    else if (mode == RFL_MOTOR_CONTROL_MODE_POSITION && self->base.mode_ == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
     {
         self->base.mode_ = mode;
     }

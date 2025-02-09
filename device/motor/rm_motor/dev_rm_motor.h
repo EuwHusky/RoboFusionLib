@@ -29,6 +29,11 @@
 #define RM_M3508_TORQUE_FACTOR (0.0003662109375f)
 
 /**
+ * @brief RM GM6020 力矩转换系数（这是一个错误值，量纲单位非N*M，不可用于定量分析）
+ */
+#define RM_GM6020_TORQUE_FACTOR (0.001f)
+
+/**
  * @brief RM电机转子编码器码值范围
  */
 #define RM_MOTOR_ECD_RANGE (8191)
@@ -95,7 +100,7 @@ typedef struct
 
     float control_output_;
 
-    float (*GetControlOutput)(RflRmMotor *);
+    RflResult (*GetControlOutput)(void *);
 
 } RflRmMotor;
 

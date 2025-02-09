@@ -3,25 +3,32 @@
 #include "dev_rm_motor.h"
 #include "dev_rm_motor_controller.h"
 
+#include "algo_angle.h"
 #include "algo_data_limiting.h"
 
-static void RflRmMotorUpdateState(void *rm_motor);
-static void RflRmMotorUpdateControl(void *rm_motor);
-static RflMotorError RflRmMotorResetPosition(void *rm_motor);
-static RflMotorError RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode);
-static float RflRmMotorGetControlOutput(RflRmMotor *self);
+static RflResult RflRmMotorUpdateState(void *rm_motor);
+static RflResult RflRmMotorUpdateControl(void *rm_motor);
+static RflResult RflRmMotorResetPosition(void *rm_motor);
+static RflResult RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode);
+static RflResult RflRmMotorGetControlOutput(void *rm_motor);
 
-RflMotorError RflRmMotorGetDefaultConfig(RflRmMotorConfig *config, RflMotorType type,
-                                         RflMotorControllerType controller_type)
+RflResult RflRmMotorGetDefaultConfig(RflRmMotorConfig *config, RflMotorType type,
+                                     RflMotorControllerType controller_type)
 {
+    RflResult ret = {0};
+
     if (config == NULL)
-        return RFL_MOTOR_NULL_POINTER;
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
 
     memset(config, 0, sizeof(RflRmMotorConfig));
 
     if (!(type >= RFL_MOTOR_RM_M2006 && type <= RFL_MOTOR_RM_GM6020))
     {
-        return RFL_MOTOR_TYPE_MISMATCH;
+        ret.error = RFL_ERROR_INVALID_ARG;
+        return ret;
     }
     RflBaseMotorGetDefaultConfig(&config->base, type);
 
@@ -35,7 +42,8 @@ RflMotorError RflRmMotorGetDefaultConfig(RflRmMotorConfig *config, RflMotorType 
     if (!(controller_type >= RFL_RM_MOTOR_CONTROLLER_NORMAL_PID &&
           controller_type <= RFL_RM_MOTOR_CONTROLLER_NORMAL_PID))
     {
-        return RFL_MOTOR_CONTROLLER_TYPE_MISMATCH;
+        ret.error = RFL_ERROR_INVALID_ARG;
+        return ret;
     }
     config->base.controller_type = controller_type;
     if (controller_type == RFL_RM_MOTOR_CONTROLLER_NORMAL_PID)
@@ -43,7 +51,10 @@ RflMotorError RflRmMotorGetDefaultConfig(RflRmMotorConfig *config, RflMotorType 
         config->controller_param =
             (RflRmMotorControllerNormalPidParam *)malloc(sizeof(RflRmMotorControllerNormalPidParam));
         if (config->controller_param == NULL)
-            return RFL_MOTOR_OUT_OF_MEMORY;
+        {
+            ret.error = RFL_ERROR_OUT_OF_MEMORY;
+            return ret;
+        }
         RflRmMotorControllerNormalPidParam *controller_param =
             (RflRmMotorControllerNormalPidParam *)config->controller_param;
         if (type == RFL_MOTOR_RM_M2006)
@@ -89,17 +100,27 @@ RflMotorError RflRmMotorGetDefaultConfig(RflRmMotorConfig *config, RflMotorType 
 
     config->can_rx_data = NULL;
 
-    return RFL_MOTOR_SUCCESS;
+    ret.error = RFL_SUCCESS;
+    return ret;
 }
 
-RflMotorError RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config)
+RflResult RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config)
 {
+    RflResult ret = {0};
+
+    if (self == NULL || config == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
     memset(self, 0, sizeof(RflRmMotor));
 
     if (!(config->base.type >= RFL_MOTOR_RM_M2006 && config->base.type <= RFL_MOTOR_RM_GM6020))
     {
         config->base.type = RFL_MOTOR_UNDEFINED;
-        return RFL_MOTOR_TYPE_MISMATCH;
+        ret.error = RFL_ERROR_INVALID_ARG;
+        return ret;
     }
     RflBaseMotorInit(&self->base, &config->base);
 
@@ -107,7 +128,8 @@ RflMotorError RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config)
           config->base.controller_type <= RFL_RM_MOTOR_CONTROLLER_NORMAL_PID))
     {
         config->base.controller_type = RFL_MOTOR_CONTROLLER_UNDEFINED;
-        return RFL_MOTOR_CONTROLLER_TYPE_MISMATCH;
+        ret.error = RFL_ERROR_INVALID_ARG;
+        return ret;
     }
     self->base.controller_type_ = config->base.controller_type;
 
@@ -115,7 +137,10 @@ RflMotorError RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config)
     {
         self->base.controller_ = (RflRmMotorControllerNormalPid *)malloc(sizeof(RflRmMotorControllerNormalPid));
         if (self->base.controller_ == NULL)
-            return RFL_MOTOR_OUT_OF_MEMORY;
+        {
+            ret.error = RFL_ERROR_OUT_OF_MEMORY;
+            return ret;
+        }
         RflRmMotorControllerNormalPid *controller = (RflRmMotorControllerNormalPid *)self->base.controller_;
         memset(controller, 0, sizeof(RflRmMotorControllerNormalPid));
         RflRmMotorControllerNormalPidParam *controller_param =
@@ -146,6 +171,8 @@ RflMotorError RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config)
         self->torque_factor_ = RM_M2006_TORQUE_FACTOR;
     else if (config->base.type == RFL_MOTOR_RM_M3508)
         self->torque_factor_ = RM_M3508_TORQUE_FACTOR;
+    else if (config->base.type == RFL_MOTOR_RM_GM6020)
+        self->torque_factor_ = RM_GM6020_TORQUE_FACTOR;
     else
         self->torque_factor_ = 0.0f;
 
@@ -154,106 +181,117 @@ RflMotorError RflRmMotorInit(RflRmMotor *self, RflRmMotorConfig *config)
     self->last_ecd_ = 4095;
 
     if (config->can_rx_data == NULL)
-        return;
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
     self->can_rx_data_ = config->can_rx_data;
 
     self->GetControlOutput = RflRmMotorGetControlOutput;
 
-    return RFL_MOTOR_SUCCESS;
+    ret.error = RFL_SUCCESS;
+    return ret;
 }
 
-static void RflRmMotorUpdateState(void *rm_motor)
+static RflResult RflRmMotorUpdateState(void *rm_motor)
 {
+    RflResult ret = {0};
+    if (rm_motor == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
     RflRmMotor *self = (RflRmMotor *)rm_motor;
 
-    // // 更新电机反馈数据
-    // decode_rm_motor_feedback(&rm_motor->feedback_, rm_motor->can_rx_data);
+    // 更新电机反馈数据
+    DecodeRmMotorFeedback(&self->feedback_, self->can_rx_data_);
 
-    // if (control_mode == CONTROL_MODE_SPEED)
-    // {
-    //     rm_motor->rotor_turns = 0;
-    //     rm_motor->ecd_angle_offset = rm_motor->feedback_.ecd;
-    // }
-    // else if (control_mode != CONTROL_MODE_SPEED)
-    // {
-    //     // 跳变沿检测
-    //     if (rm_motor->last_ecd - rm_motor->feedback_.ecd > RM_MOTOR_HALF_ECD_RANGE)
-    //         rm_motor->rotor_turns++;
-    //     else if (rm_motor->feedback_.ecd - rm_motor->last_ecd > RM_MOTOR_HALF_ECD_RANGE)
-    //         rm_motor->rotor_turns--;
+    if (self->base.mode_ == RFL_MOTOR_CONTROL_MODE_SPEED)
+    {
+        self->rotor_turns_ = 0;
+        self->ecd_angle_offset_ = self->feedback_.ecd;
+    }
+    else if (self->base.mode_ != RFL_MOTOR_CONTROL_MODE_SPEED)
+    {
+        // 跳变沿检测
+        if (self->last_ecd_ - self->feedback_.ecd > RM_MOTOR_HALF_ECD_RANGE)
+            self->rotor_turns_++;
+        else if (self->feedback_.ecd - self->last_ecd_ > RM_MOTOR_HALF_ECD_RANGE)
+            self->rotor_turns_--;
 
-    //     // 单圈限幅
-    //     if (angle_format == ANGLE_FORMAT_ABSOLUTE)
-    //     {
-    //         int16_t half_integer_transmission_ratio = (int16_t)(rm_motor->effector_transmission_ratio) / 2;
-    //         if (rm_motor->rotor_turns > half_integer_transmission_ratio - 1 &&
-    //             rm_motor->feedback_.ecd > rm_motor->ecd_angle_offset)
-    //             rm_motor->rotor_turns = -half_integer_transmission_ratio;
-    //         else if (rm_motor->rotor_turns < 1 - half_integer_transmission_ratio &&
-    //                  rm_motor->feedback_.ecd < rm_motor->ecd_angle_offset)
-    //             rm_motor->rotor_turns = half_integer_transmission_ratio;
-    //     }
-    // }
+        // 单圈限幅
+        if (self->base.angle_format_ == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
+        {
+            int16_t half_integer_transmission_ratio = (int16_t)(self->ecd_to_effector_angle_factor_) / 2;
+            if (self->rotor_turns_ > half_integer_transmission_ratio - 1 &&
+                self->feedback_.ecd > self->ecd_angle_offset_)
+                self->rotor_turns_ = -half_integer_transmission_ratio;
+            else if (self->rotor_turns_ < 1 - half_integer_transmission_ratio &&
+                     self->feedback_.ecd < self->ecd_angle_offset_)
+                self->rotor_turns_ = half_integer_transmission_ratio;
+        }
+    }
 
-    // rm_motor->last_ecd = rm_motor->feedback_.ecd;
+    self->last_ecd_ = self->feedback_.ecd;
 
-    // // 计算末端执行器转速
-    // rm_motor->speed = (float)rm_motor->feedback_.speed_rpm * rm_motor->rpm_to_effector_speed_factor;
+    // 计算末端执行器转速
+    self->base.internal_speed_ = (float)self->feedback_.speed_rpm * self->rpm_to_effector_speed_factor_;
 
-    // // 可测量最大圈数限制
-    // if (rm_motor->rotor_turns > rm_motor->max_rotor_turns)
-    //     rm_motor->rotor_turns = rm_motor->max_rotor_turns;
-    // else if (rm_motor->rotor_turns < rm_motor->min_rotor_turns)
-    //     rm_motor->rotor_turns = rm_motor->min_rotor_turns;
+    // 可测量最大圈数限制
+    if (self->rotor_turns_ > self->max_rotor_turns_)
+        self->rotor_turns_ = self->max_rotor_turns_;
+    else if (self->rotor_turns_ < self->min_rotor_turns_)
+        self->rotor_turns_ = self->min_rotor_turns_;
 
-    // // 计算末端执行器角度 角度范围大约为 -10000°~10000°
-    // rm_motor->ecd_angle =
-    //     rm_motor->rotor_turns * RM_MOTOR_ECD_RANGE + rm_motor->feedback_.ecd - rm_motor->ecd_angle_offset;
-    // rm_motor->deg_angle = (float)rm_motor->ecd_angle * rm_motor->ecd_to_effector_angle_factor;
+    // 计算末端执行器角度 角度范围大约为 -10000°~10000°
+    self->ecd_angle_ = self->rotor_turns_ * RM_MOTOR_ECD_RANGE + self->feedback_.ecd - self->ecd_angle_offset_;
+    self->base.internal_position_ =
+        (float)self->ecd_angle_ * self->ecd_to_effector_angle_factor_ * DEGREE_TO_RADIAN_FACTOR;
+    // 单圈角度处理
+    if (self->base.angle_format_ == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
+    {
+        self->base.internal_position_ = rflFloatLoopConstrain(self->base.internal_position_, -RAD_PI, RAD_PI);
+    }
 
-    // // 计算电机转矩
-    // rm_motor->torque = (float)rm_motor->feedback_.given_current * rm_motor->torque_factor;
+    // 计算电机转矩
+    self->base.torque_ = (float)self->feedback_.given_current * self->torque_factor_;
 
-    // // 计算电机温度
-    // rm_motor->temperature = rm_motor->feedback_.temperate;
+    // 计算电机温度
+    self->base.temperature_ = self->feedback_.temperate;
 
-    // //////////////////////
+    // 结算 考虑安装极性
 
-    // motor->torque_ = ((rm_motor_s *)(motor->driver))->torque;
+    self->base.torque_ *= (self->base.is_reversed_ ? -1.0f : 1.0f);
 
-    // motor->internal_speed = ((rm_motor_s *)(motor->driver))->speed;
+    self->base.internal_speed_ *= (self->base.is_reversed_ ? -1.0f : 1.0f);
+    self->base.speed_ = self->base.external_speed_ == NULL ? self->base.internal_speed_ : *self->base.external_speed_;
 
-    // rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE, ((rm_motor_s *)(motor->driver))->deg_angle);
+    self->base.internal_position_ *= (self->base.is_reversed_ ? -1.0f : 1.0f);
+    self->base.position_ =
+        self->base.external_position_ == NULL ? self->base.internal_position_ : *self->base.external_position_;
 
-    // motor->temperature_ = (float)(((rm_motor_s *)(motor->driver))->temperature);
-
-    // // 结算 考虑安装极性
-
-    // motor->torque_ *= (motor->is_reversed ? -1.0f : 1.0f);
-
-    // motor->internal_speed *= (motor->is_reversed ? -1.0f : 1.0f);
-    // motor->speed_ = motor->external_speed == NULL ? motor->internal_speed : *motor->external_speed;
-
-    // rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE,
-    //                motor->internal_angle.deg * (motor->is_reversed ? -1.0f : 1.0f));
-    // // 单圈角度处理
-    // if (motor->angle_format == RFL_MOTOR_ANGLE_FORMAT_ABSOLUTE)
-    //     rflAngleUpdate(&motor->internal_angle, RFL_ANGLE_FORMAT_DEGREE,
-    //                    rflFloatLoopConstrain(motor->internal_angle.deg, -DEG_PI, DEG_PI));
-    // rflAngleUpdate(&motor->angle_, RFL_ANGLE_FORMAT_DEGREE,
-    //                motor->external_angle == NULL ? motor->internal_angle.deg : motor->external_angle->deg);
+    ret.error = RFL_SUCCESS;
+    return ret;
 }
 
-static void RflRmMotorUpdateControl(void *rm_motor)
+static RflResult RflRmMotorUpdateControl(void *rm_motor)
 {
 }
 
-static RflMotorError RflRmMotorResetPosition(void *rm_motor)
+static RflResult RflRmMotorResetPosition(void *rm_motor)
 {
 }
 
-static RflMotorError RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode)
+static RflResult RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode)
 {
+    RflResult ret = {0};
+    if (rm_motor == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
     RflRmMotor *self = (RflRmMotor *)rm_motor;
 
     if (mode == RFL_MOTOR_CONTROL_MODE_NO_FORCE)
@@ -276,13 +314,24 @@ static RflMotorError RflRmMotorSetMode(void *rm_motor, RflMotorControlMode mode)
     }
     else
     {
-        return RFL_MOTOR_SET_MODE_INVALID;
+        ret.error = RFL_ERROR_INVALID_ARG;
     }
 
-    return RFL_MOTOR_SUCCESS;
+    ret.error = RFL_SUCCESS;
+    return ret;
 }
 
-static float RflRmMotorGetControlOutput(RflRmMotor *self)
+static RflResult RflRmMotorGetControlOutput(void *rm_motor)
 {
-    return self->control_output_;
+    RflResult ret = {0};
+    if (rm_motor == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflRmMotor *)rm_motor)->control_output_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }

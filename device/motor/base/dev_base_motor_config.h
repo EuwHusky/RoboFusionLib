@@ -4,26 +4,12 @@
 #include "stdbool.h"
 #include "stdint.h"
 
-#include "Rfl_config.h"
-
-#include "algo_angle.h"
+#include "rfl_config.h"
 
 #define RFL_MOTOR_DEFAULT_CONTROL_PERIOD_FACTOR (1.0f)
 #define RFL_MOTOR_DEFAULT_MAX_SPEED (1.0f)
 
 #define RFL_MOTOR_DEFAULT_POSITION_RANGE (RAD_PI)
-
-typedef enum
-{
-    RFL_MOTOR_SUCCESS = 0,
-    RFL_MOTOR_NULL_POINTER,
-    RFL_MOTOR_TYPE_MISMATCH,
-    RFL_MOTOR_CONTROLLER_TYPE_MISMATCH,
-    RFL_MOTOR_OUT_OF_MEMORY,
-    RFL_MOTOR_RESET_POSITION_INVALID,
-    RFL_MOTOR_SET_MODE_INVALID,
-
-} RflMotorError;
 
 typedef enum
 {

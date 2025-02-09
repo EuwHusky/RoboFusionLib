@@ -2,20 +2,20 @@
 
 #include "dev_base_motor.h"
 
-static void RflBaseMotorSetSpeed(void *base, float set_speed);
-static void RflBaseMotorSetMaxSpeed(void *base, float max_speed);
-static void RflBaseMotorSetPosition(void *base, float set_position);
-static void RflBaseMotorSetPositionLimit(void *base, float max_position, float min_position);
-static RflMotorControlMode RflBaseMotorGetMode(void *base);
-static float RflBaseMotorGetSpeed(void *base);
-static float RflBaseMotorGetInternalSpeed(void *base);
-static float RflBaseMotorGetMaxSpeed(void *base);
-static float RflBaseMotorGetPosition(void *base);
-static float RflBaseMotorGetInternalPosition(void *base);
-static float RflBaseMotorGetMaxPosition(void *base);
-static float RflBaseMotorGetMinPosition(void *base);
-static float RflBaseMotorGetTemperature(void *base);
-static float RflBaseMotorGetTorque(void *base);
+static RflResult RflBaseMotorSetSpeed(void *base, float set_speed);
+static RflResult RflBaseMotorSetMaxSpeed(void *base, float max_speed);
+static RflResult RflBaseMotorSetPosition(void *base, float set_position);
+static RflResult RflBaseMotorSetPositionLimit(void *base, float max_position, float min_position);
+static RflResult RflBaseMotorGetMode(void *base);
+static RflResult RflBaseMotorGetSpeed(void *base);
+static RflResult RflBaseMotorGetInternalSpeed(void *base);
+static RflResult RflBaseMotorGetMaxSpeed(void *base);
+static RflResult RflBaseMotorGetPosition(void *base);
+static RflResult RflBaseMotorGetInternalPosition(void *base);
+static RflResult RflBaseMotorGetMaxPosition(void *base);
+static RflResult RflBaseMotorGetMinPosition(void *base);
+static RflResult RflBaseMotorGetTemperature(void *base);
+static RflResult RflBaseMotorGetTorque(void *base);
 
 void RflBaseMotorGetDefaultConfig(RflBaseMotorConfig *config, RflMotorType type)
 {
@@ -70,77 +70,233 @@ void RflBaseMotorInit(RflBaseMotor *self, RflBaseMotorConfig *config)
     self->GetTorque = RflBaseMotorGetTorque;
 }
 
-static void RflBaseMotorSetSpeed(void *base, float set_speed)
+static RflResult RflBaseMotorSetSpeed(void *base, float set_speed)
 {
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
     RflBaseMotor *self = (RflBaseMotor *)base;
     self->set_speed_ = set_speed;
+
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static void RflBaseMotorSetMaxSpeed(void *base, float max_speed)
+static RflResult RflBaseMotorSetMaxSpeed(void *base, float max_speed)
 {
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+    if (max_speed < 0.0f)
+    {
+        ret.error = RFL_ERROR_INVALID_ARG;
+        return ret;
+    }
+
     RflBaseMotor *self = (RflBaseMotor *)base;
     self->max_speed_ = max_speed;
+
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static void RflBaseMotorSetPosition(void *base, float set_position)
+static RflResult RflBaseMotorSetPosition(void *base, float set_position)
 {
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
     RflBaseMotor *self = (RflBaseMotor *)base;
+
+    if (set_position > self->max_position_ || set_position < self->min_position_)
+    {
+        ret.error = RFL_ERROR_INVALID_ARG;
+        return ret;
+    }
+
     self->set_position_ = set_position;
+
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static void RflBaseMotorSetPositionLimit(void *base, float max_position, float min_position)
+static RflResult RflBaseMotorSetPositionLimit(void *base, float max_position, float min_position)
 {
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
     RflBaseMotor *self = (RflBaseMotor *)base;
     self->max_position_ = max_position;
     self->min_position_ = min_position;
+
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static RflMotorControlMode RflBaseMotorGetMode(void *base)
+static RflResult RflBaseMotorGetMode(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.u = (uint32_t)((RflBaseMotor *)base)->mode_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetSpeed(void *base)
+static RflResult RflBaseMotorGetSpeed(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->speed_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetInternalSpeed(void *base)
+static RflResult RflBaseMotorGetInternalSpeed(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->internal_speed_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetMaxSpeed(void *base)
+static RflResult RflBaseMotorGetMaxSpeed(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->max_speed_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetPosition(void *base)
+static RflResult RflBaseMotorGetPosition(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->position_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetInternalPosition(void *base)
+static RflResult RflBaseMotorGetInternalPosition(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->internal_position_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetMaxPosition(void *base)
+static RflResult RflBaseMotorGetMaxPosition(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->max_position_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetMinPosition(void *base)
+static RflResult RflBaseMotorGetMinPosition(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->min_position_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetTemperature(void *base)
+static RflResult RflBaseMotorGetTemperature(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->temperature_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }
 
-static float RflBaseMotorGetTorque(void *base)
+static RflResult RflBaseMotorGetTorque(void *base)
 {
-    return ((RflBaseMotor *)base)->mode_;
+    RflResult ret = {0};
+    if (base == NULL)
+    {
+        ret.error = RFL_ERROR_NULL_POINTER;
+        return ret;
+    }
+
+    ret.value.f = ((RflBaseMotor *)base)->torque_;
+    ret.error = RFL_SUCCESS;
+
+    return ret;
 }

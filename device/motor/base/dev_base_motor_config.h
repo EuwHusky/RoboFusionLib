@@ -6,6 +6,8 @@
 
 #include "rfl_config.h"
 
+#include "algo_angle.h"
+
 #define RFL_MOTOR_DEFAULT_CONTROL_PERIOD_FACTOR (1.0f)
 #define RFL_MOTOR_DEFAULT_MAX_SPEED (1.0f)
 
